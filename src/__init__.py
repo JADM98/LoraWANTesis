@@ -1,20 +1,18 @@
 from flask import Flask, jsonify, request
 import models
-# from concurrent import futures
+from concurrent import futures
+
+device: models.LoraDevice
 app = Flask(__name__)
-# threadPool = futures.ThreadPoolExecutor(max_workers=4)
-# jsonResponse:str = ""
-# myJson:Event
-myJson: models.Event
+threadPool = futures.ThreadPoolExecutor(max_workers=4)
 
 def handleTest():
-    global myJson
+    # global myJson
+    global device
     if request.is_json:
         myJson = models.Event.from_dict(request.json)
         device = models.LoraDevice(myJson)
-        print(device.data)
-        print(device.deviceEUI)
-        # print(dev1)
+        models.EventProcessor.process(device=device)
         return jsonify({"message":"Accepted"})
     
     return jsonify({"message":"Rejected, body was not a json"})
@@ -23,8 +21,8 @@ def getTest():
     # return jsonify({"message":jsonResponse})
     # return jsonify(myJson.to_dict())
     # dec = DecoderFactory.create(DecoderFactory.UTF8)
-    data = models.Decode.base64(data=myJson.data, decoder=models.DecoderUTF8())
-    return jsonify({"data":data})
+    # data = models.Decode.base64(data=device., decoder=models.DecoderUTF8())
+    return jsonify({"data":device.data})
 
 
 # Routes.addRoute(app=app, url="/test", function=lambda:jsonify({"message":"Ok"}))
