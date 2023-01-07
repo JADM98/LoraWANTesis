@@ -28,20 +28,20 @@ class SimplifiedKalmanFilter():
                 self.F[i+self.numberOfVariables, i+self.numberOfVariables] = 1
                 self.F[i, i+self.numberOfVariables] = 1/secondsToMeasure
 
-    def setStandardDeviation(self, stdDev:list[int]|Tuple[int]|np.ndarray|float):
+    def setStandardDeviation(self, stdDev:any):
         isInstance, stdDev = self.__checkDataInstace(stdDev)
         if isInstance:
             for i in range(self.numberOfVariables):
                 self.R[i,i] = stdDev[i]
 
-    def setProcessNoiseScalar(self, scalar:int|float):
+    def setProcessNoiseScalar(self, scalar:float):
         if scalar < 0:
             raise ValueError("Scalar of Q matrix cannot be negative.")
         if scalar == 0:
             warnings.warn("Process Noise scalar should not be 0, giving a positive value helps the model (try 0.005).")
         self.Q = scalar * np.eye( self.sizeOfMatrix ) 
 
-    def setNewMeasureTime(self, time:list[int]|Tuple[int]|np.ndarray|float):
+    def setNewMeasureTime(self, time:any):
         isInstance, time = self.__checkDataInstace(time)
         if isInstance:
             for i in range(self.numberOfVariables):
@@ -66,7 +66,7 @@ class SimplifiedKalmanFilter():
             
         return tuple(predictions)
 
-    def update(self, z:list[int]|Tuple[int]|np.ndarray|float) -> Tuple[float, ...]:
+    def update(self, z:any) -> Tuple[float, ...]:
         isIstance, z = self.__checkDataInstace(z)
         if isIstance:
             y = z - np.dot(self.H, self.X)

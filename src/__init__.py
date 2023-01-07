@@ -11,8 +11,9 @@ def handleTest():
     global device
     if request.is_json:
         myJson = models.Event.from_dict(request.json)
-        device = models.LoraDevice(myJson)
-        models.EventProcessor.process(device=device)
+        # device = models.LoraDevice(myJson)
+        # models.EventProcessor.process(device=device)
+        models.EventProcessor.process(event=myJson)
         return jsonify({"message":"Accepted"})
     
     return jsonify({"message":"Rejected, body was not a json"})
