@@ -39,7 +39,19 @@ class SimplifiedKalmanFilter():
             raise ValueError("Scalar of Q matrix cannot be negative.")
         if scalar == 0:
             warnings.warn("Process Noise scalar should not be 0, giving a positive value helps the model (try 0.005).")
-        self.Q = scalar * np.eye( self.sizeOfMatrix ) 
+        self.Q = scalar * np.eye( self.sizeOfMatrix )
+
+    def setInitialValues(self, values:float) -> None:
+        isInstance, values = self.__checkDataInstace(values)
+
+        if not isInstance:
+            raise ValueError("Not correct format of values")
+        if len(values) != self.numberOfVariables:
+            raise ValueError("Incorrect length of values, expected {} but received {}".format(
+                self.numberOfVariables, len(values)))
+
+        for index in range(len(values)):
+            self.X[2*index, 2*index] = values[index]
 
     def setNewMeasureTime(self, time:any):
         isInstance, time = self.__checkDataInstace(time)
@@ -78,7 +90,7 @@ class SimplifiedKalmanFilter():
 
         return tuple([float(np.dot(self.H, self.X))])
 
-    def __checkDataInstace(self, myData):
+    def __checkDataInstace(self, myData) -> np.array:
         if isinstance(myData, int) or isinstance(myData, float):
             myData = (myData,)
 
