@@ -2,98 +2,147 @@ from models.event import Event
 from models.decode import *
 from models.kalmanFilter.simplifiedKalmanFilter import SimplifiedKalmanFilter
 from abc import ABC, abstractmethod, abstractproperty
+from models.eventUtils.loraDataParser import LoraDataParser
 
 class LoraDev(ABC):
     @abstractproperty
-    def deviceEUI(self):
+    def deviceEUI(self) -> str:
         pass
     @abstractproperty
-    def data(self):
+    def data(self) -> list[int]:
         pass
     @abstractproperty
-    def battery(self):
+    def battery(self) -> float:
         pass
     @abstractproperty
-    def sleepTime(self):
+    def sleepTime(self) -> float:
+        pass
+    @abstractproperty
+    def oldSleepTime(self) -> float:
+        pass
+    @abstractproperty
+    def didRestart(self) -> bool:
         pass
     @abstractmethod
     def checkEUIMatch(self, jsonEvent:Event) -> bool:
         pass
     @abstractmethod
     def updateDevice(self, jsonEvent:Event) -> bool:
+        pass
+    @abstractmethod
+    def setNewSleepTime(self, sleepTime:int) -> bool:
         pass
 
 class LoraDevice(LoraDev):
 
     @property
-    def deviceEUI(self):
+    def deviceEUI(self) -> str:
         return self.__devEui
     @property
-    def data(self):
+    def data(self) -> list[int]:
         return self.__data
     @property
-    def battery(self):
-        return self.__battery
+    def battery(self) -> float:
+        return float(self.__battery)
     @property
-    def sleepTime(self):
-        return self.__sleepTime
+    def sleepTime(self) -> float:
+        return float(self.__sleepTime)
+    @property
+    def didRestart(self) -> bool:
+        return self.__didRestart
+    @property
+    def oldSleepTime(self) -> float:
+        return float(self.__oldSleepTime)
+    
 
     def __init__(self, jsonEvent:Event) -> None:
-        self.__devEui = Decode.decode(jsonEvent.devEUI, decoder=Base64DecoderHex())
-        self.__data = Decode.decode(jsonEvent.data, decoder=Base64DecoderUTF8())
-        self.__battery = self.__data
+        decoder = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
+        self.__devEui = decoder.decode(jsonEvent.devEUI)
+        loraData = LoraDataParser(data=jsonEvent.data)
+        self.__data = loraData.data
+        self.__battery = loraData.battery
+        self.__didRestart = loraData.didRestart
         self.__sleepTime = 10
+        self.__oldSleepTime = 10
 
     def checkEUIMatch(self, jsonEvent:Event) -> bool:
-        devEui = Decode.decode(data=jsonEvent.devEUI, decoder=Base64DecoderHex())
+        decoder:str = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
+        devEui = decoder.decode(jsonEvent.devEUI)
         return devEui == self.__devEui
 
     def updateDevice(self, jsonEvent:Event) -> bool:
         if self.checkEUIMatch(jsonEvent):
-            self.__data = Decode.decode(jsonEvent.data, decoder=Base64DecoderUTF8())
+            loraData = LoraDataParser(jsonEvent.data)
+            self.__data = loraData.data
+            self.__battery = loraData.battery
+            self.__didRestart = loraData.didRestart
+            if loraData.didRestart:
+                self.setNewSleepTime(10)
+                # self.__sleepTime = 10
             return True
         return False
 
     def setNewSleepTime(self, sleepTime:int) -> bool:
         if sleepTime <= 60 and sleepTime >= 1:
+            self.__oldSleepTime = self.__sleepTime
             self.__sleepTime = sleepTime
             return True
         return False
 
 class LoraDeviceKalmanFiltered(LoraDev):
     @property
-    def deviceEUI(self):
+    def deviceEUI(self) -> str:
         return self.__devEui
     @property
-    def data(self):
+    def data(self) -> list[int]:
         return self.__data
     @property
-    def battery(self):
-        return self.__battery
+    def battery(self) -> float:
+        return float(self.__battery)
     @property
-    def sleepTime(self):
-        return self.__sleepTime
+    def sleepTime(self) -> float:
+        return float(self.__sleepTime)
+    @property
+    def didRestart(self) -> bool:
+        return self.__didRestart
+    @property
+    def oldSleepTime(self) -> float:
+        return float(self.__oldSleepTime)
 
     def __init__(self, jsonEvent: Event) -> None:
-        self.__devEui = Decode.decode(jsonEvent.devEUI, decoder=Base64DecoderHex())
-        self.__data = int(Decode.decode(jsonEvent.data, decoder=Base64DecoderInt()))
-        self.__battery = self.__data
+        decoder = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
+        self.__devEui = decoder.decode(jsonEvent.devEUI)
+        loraData = LoraDataParser(jsonEvent.data)
+        self.__data = loraData.data
+        self.__battery = loraData.battery
+        self.__didRestart = loraData.didRestart
         self.__kalman = SimplifiedKalmanFilter()
         self.__sleepTime = 10   #minutes
+        self.__oldSleepTime = self.__sleepTime
         self.__kalman.setInitialValues(self.battery)
         print("Starting battery: {}".format(self.__battery))
 
     def checkEUIMatch(self, jsonEvent:Event) -> bool:
-        devEui = Decode.decode(data=jsonEvent.devEUI, decoder=Base64DecoderHex())
+        decoder = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
+        devEui = decoder.decode(jsonEvent.devEUI)
+        # devEui = Decoder.decode(data=jsonEvent.devEUI, decoder=Base64DecoderHex())
         return devEui == self.__devEui
 
     def updateDevice(self, jsonEvent: Event) -> bool:
         if self.checkEUIMatch(jsonEvent):
-            self.__data = int(Decode.decode(jsonEvent.data, decoder=Base64DecoderInt()))
-            self.__kalman.predict()
-            self.__battery = self.__kalman.update(self.__data)[0]
-            self.__battery = 0 if self.__battery < 0 else self.__battery
-            self.__battery = 100 if self.__battery > 100 else self.__battery
+            loraData = LoraDataParser(jsonEvent.data)
+            self.__data = loraData.data
+            self.__battery = loraData.battery
+            self.__didRestart = loraData.didRestart
+            if loraData.didRestart:
+                self.__sleepTime = 10
+                self.__kalman.setNewMeasureTime(self.__sleepTime)
+                self.__kalman.setInitialValues(self.battery)
+            else:
+                self.__kalman.predict()
+                self.__battery = self.__kalman.update(self.__battery)[0]
+                self.__battery = 0 if self.__battery < 0 else self.__battery
+                self.__battery = 100 if self.__battery > 100 else self.__battery
             # return float(self.__battery)
             return True
         return False
@@ -109,6 +158,7 @@ class LoraDeviceKalmanFiltered(LoraDev):
 
     def setNewSleepTime(self, sleepTime:int) -> bool:
         if sleepTime <= 60 and sleepTime >= 1:
+            self.__oldSleepTime = self.__sleepTime
             self.__sleepTime = sleepTime
             self.__kalman.setNewMeasureTime(self.__sleepTime)
             return True

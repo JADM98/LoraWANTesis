@@ -17,6 +17,7 @@ class NetworkManager():
         self.maximumTS = 60
 
     def processNewSleepTime(self, device:LoraDev):
+
         action = self.qNetwork.evaluate(energy=device.battery, sleepTime=device.sleepTime)
         newSleepTime = self.actions[action] + device.sleepTime
 
@@ -25,8 +26,12 @@ class NetworkManager():
         if newSleepTime > self.maximumTS:
             newSleepTime = self.maximumTS
 
-        reward = RewardCalculator.calculate(energy=device.battery, targetEnergy=self.targetEnergy, newSleepTime=newSleepTime)
+        reward = RewardCalculator.calculate(
+            energy=device.battery, targetEnergy=self.targetEnergy, newSleepTime=newSleepTime, oldSleepTime=device.sleepTime)
 
+        if device.didRestart:
+            self.replayMemoryManager.addFailure(device=device)
+        
         self.replayMemoryManager.add(device=device, actionTaken=action, reward=reward)
 
         if self.replayMemoryManager.canSample():

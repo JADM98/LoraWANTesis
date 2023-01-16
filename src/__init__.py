@@ -23,7 +23,15 @@ def getTest():
     # return jsonify(myJson.to_dict())
     # dec = DecoderFactory.create(DecoderFactory.UTF8)
     # data = models.Decode.base64(data=device., decoder=models.DecoderUTF8())
-    return jsonify({"data":device.data})
+    # return jsonify({"data":device.data})
+    if models.EventProcessor.neuralNetworkManager.replayMemoryManager.canSample():
+        return jsonify(models.EventProcessor.neuralNetworkManager.replayMemoryManager.sampleList())
+    
+    return jsonify([])
+
+def getAll():
+    return jsonify(models.EventProcessor.neuralNetworkManager.replayMemoryManager.getMemory())
+        
 
 
 # Routes.addRoute(app=app, url="/test", function=lambda:jsonify({"message":"Ok"}))
@@ -31,6 +39,7 @@ def getTest():
 # Routes.addRoute(app=app, url="/test2", function=lambda:jsonify({"message":"So so"}))
 models.Routes.addRoute(app=app, url="/test3", function=handleTest, methods=models.RouteMethods.POST)
 models.Routes.addRoute(app=app, url="/test3", function=getTest)
+models.Routes.addRoute(app=app, url="/memory", function=getAll)
 
 if __name__ == '__main__':
     app.run(debug=False, port=4000)

@@ -3,8 +3,13 @@ import numpy as np
 class RewardCalculator():
 
     @staticmethod
-    def calculate(energy:int, targetEnergy:int, newSleepTime:int):
-        rewardEnergy = RewardCalculatorEnergyConservation.calculate(energy, targetEnergy, newSleepTime)
+    def calculate(energy:int, targetEnergy:int, newSleepTime:int, oldSleepTime:int):
+
+        # if didRestart: return float(-10)
+
+        rewardEnergy = RewardCalculatorEnergyConservation.calculate(energy, targetEnergy, newSleepTime - oldSleepTime)
+        rewardEnergy = RewardCalculatorEnergyConservation.adapt(
+            rewardEnergy, energy, targetEnergy, newSleepTime - oldSleepTime)
         rewardTransmit = RewardCalculatorFastTransmission.calculate(newSleepTime)
 
         return rewardEnergy * 0.8 + rewardTransmit * 0.2
@@ -12,8 +17,9 @@ class RewardCalculator():
 class RewardCalculatorEnergyConservation():
 
     @staticmethod
-    def calculate(energy:int, targetEnergy:int, newSleepTime:int):
-        if newSleepTime < 0:
+    def calculate(energy:int, targetEnergy:int, sleepTimeDifference:int):
+        #If new time is less
+        if sleepTimeDifference < 0:
             energy = targetEnergy - energy
             if energy < -10:
                 reward = float(-energy/3 + 200/3)
@@ -22,14 +28,14 @@ class RewardCalculatorEnergyConservation():
             if energy > 10:
                 reward = float(-energy/3 - 200/3)
 
-        if newSleepTime == 0:
+        if sleepTimeDifference == 0:
             energy = targetEnergy - energy
             if energy >= -10 and energy <= 10:
                 reward = float(- np.power(energy, 2) + 100)
             else:
                 reward = float(-50)
 
-        if newSleepTime > 0:
+        if sleepTimeDifference > 0:
             energy = targetEnergy - energy
             if energy < -10:
                 reward = float(energy/3 - 200/3)
@@ -39,6 +45,21 @@ class RewardCalculatorEnergyConservation():
                 reward = float(energy/3 + 200/3)
         
         return reward / 100
+
+    @staticmethod
+    def adapt(reward:float, energy:int, targetEnergy:int, sleepTimeDifference:int):
+        energy = targetEnergy - energy
+
+        if energy < -15 or energy > 15:
+            if sleepTimeDifference == -1 or sleepTimeDifference == 1:
+                reward = reward * 0.75
+
+        if energy > -15 and energy < 15:
+            if sleepTimeDifference == -10 or sleepTimeDifference == 10:
+                reward = reward * 0.85
+
+
+        return reward
 
 class RewardCalculatorFastTransmission():
 

@@ -25,7 +25,7 @@ class QNetwork():
         self.epsilon = 0.0
         self.lossArray: np.array = np.array([])
 
-    def evaluate(self, energy:float, sleepTime:float) -> float:
+    def evaluate(self, energy:float, sleepTime:float) -> int:
         if self.counter <= 1000:
             self.epsilon = float(0.65 - ( np.power(0.995404, self.counter) ) * 0.65 )
         elif self.counter <= 1500 and self.counter > 1000:
@@ -34,6 +34,7 @@ class QNetwork():
             self.epsilon = 0.9
 
         if (random.random() < self.epsilon):
+            # print("Actual energy: {}, Actual sleep time: {}".format(energy, sleepTime))
             actionTaken:torch.Tensor = self.neuralNetwork(torch.tensor([energy, sleepTime]))
             actionTaken = torch.argmax( actionTaken, keepdim=True )
             action = actionTaken.item()
@@ -55,7 +56,7 @@ class QNetwork():
 
         #Evaluation of Target neural network
         #This is an estimate of the optimal future value that we should have taken. We get the max Q value.
-        targetQValuesBatch = self.targetNN(stateBatch)
+        targetQValuesBatch = self.targetNN(nextStateBatch)
         targetQValuesBatch = torch.max(targetQValuesBatch, dim=-1, keepdim=True)[0]
 
         #Calculation of target value of the bellman equation

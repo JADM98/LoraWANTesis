@@ -35,7 +35,10 @@ class ReplayMemory():
             tensor = torch.cat([torch.tensor([e]) for e in transitionElement], dim=0)
             myList.append(tensor)
         return myList
-        
+
+    def getMemoryList(self) -> list[list[list]]:
+        myList = [tran.toList() for tran in self.memory]
+        return myList
 
     def can_sample(self):
         return len(self.memory) >= self.batch_size * 10

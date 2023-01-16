@@ -4,25 +4,27 @@ from base64 import b64decode
 
 class Decoder(ABC):
     @abstractmethod
-    def decode(self, data:str) -> str:
+    def decode(self, data:str) -> any:
         pass
 
-class Decode():
+# class Decode():
 
-    @staticmethod
-    def decode(data:str, decoder:Decoder) -> str:
-        return decoder.decode(data)
+#     @staticmethod
+#     def decode(data:str, decoder:Decoder) -> any:
+#         return decoder.decode(data)
 
 class DecoderFactory():
 
-    HEX = 0
-    UTF8 = 1
-    INT = 2
+    BASE64_2_HEX = 0
+    BASE64_2_UTF8 = 1
+    BASE64_2_INT = 2
+    BASE64_2_INTHEXARRAY = 3
 
     def create(decoder:int) -> Decoder:
-        if decoder == DecoderFactory.HEX: return Base64DecoderHex()
-        if decoder == DecoderFactory.UTF8: return Base64DecoderUTF8()
-        if decoder == DecoderFactory.INT: return Base64DecoderInt()
+        if decoder == DecoderFactory.BASE64_2_HEX: return Base64DecoderHex()
+        if decoder == DecoderFactory.BASE64_2_UTF8: return Base64DecoderUTF8()
+        if decoder == DecoderFactory.BASE64_2_INT: return Base64DecoderInt()
+        if decoder == DecoderFactory.BASE64_2_INTHEXARRAY: return Base64DecoderIntHexArray()
 
 class Base64DecoderHex(Decoder):
     def decode(self, data:str) -> str:
@@ -36,4 +38,12 @@ class Base64DecoderInt(Decoder):
     def decode(self, data:str) -> int:
         dataBytes = b64decode(data)
         return int.from_bytes(dataBytes, "big")
+
+class Base64DecoderIntHexArray(Decoder):
+    def decode(self, data: str) -> list[int]:
+        hexString = b64decode(data).hex()
+        hexArray = bytes.fromhex(hexString)
+        return [hexValue for hexValue in hexArray]
+
+
 
