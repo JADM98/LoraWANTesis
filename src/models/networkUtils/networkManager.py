@@ -37,6 +37,6 @@ class NetworkManager():
         if self.replayMemoryManager.canSample():
             self.qNetwork.train(self.replayMemoryManager.sample())
 
-        return newSleepTime
+        return int(newSleepTime)
 
     

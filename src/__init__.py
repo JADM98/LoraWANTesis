@@ -13,8 +13,8 @@ def handleTest():
         myJson = models.Event.from_dict(request.json)
         # device = models.LoraDevice(myJson)
         # models.EventProcessor.process(device=device)
-        models.EventProcessor.process(event=myJson)
-        return jsonify({"message":"Accepted"})
+        sleepTime = models.EventProcessor.process(event=myJson)
+        return jsonify({"sleepTime":sleepTime})
     
     return jsonify({"message":"Rejected, body was not a json"})
 

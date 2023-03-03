@@ -19,6 +19,7 @@ class EventProcessor():
     @staticmethod
     def process(event: Event):
         #Check if it exist in current list
+        sleepTime = None
         device = next((device for device in EventProcessor.devices if device.checkEUIMatch(event)), None)
         if device is None:
             # device = LoraDeviceKalmanFiltered(event)
@@ -43,11 +44,11 @@ class EventProcessor():
             device.setNewSleepTime(sleepTime)
 
             #Post to LoRaWAN Gateway
-            # EventProcessor.queueManager.enqueueSleepTime(device, sleepTime=sleepTime)
-            print("Iteration: {}, Battery: {}, SleepTime: {}, oldSleepTime: {}, didRestart: {}".format(
-                EventProcessor.neuralNetworkManager.counter, device.battery,device.sleepTime, device.oldSleepTime, device.didRestart))
+            EventProcessor.queueManager.enqueueSleepTime(device, sleepTime=sleepTime)
+            # print("Iteration: {}, Battery: {}, SleepTime: {}, oldSleepTime: {}, didRestart: {}".format(
+            #     EventProcessor.neuralNetworkManager.counter, device.battery,device.sleepTime, device.oldSleepTime, device.didRestart))
         
-        
-        pass
+        return sleepTime
+        # pass
 
     
