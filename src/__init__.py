@@ -8,7 +8,7 @@ threadPool = futures.ThreadPoolExecutor(max_workers=4)
 
 def handleTest():
     # global myJson
-    global device
+    global myJson
     if request.is_json:
         myJson = models.Event.from_dict(request.json)
         # device = models.LoraDevice(myJson)
@@ -24,8 +24,10 @@ def getTest():
     # dec = DecoderFactory.create(DecoderFactory.UTF8)
     # data = models.Decode.base64(data=device., decoder=models.DecoderUTF8())
     # return jsonify({"data":device.data})
-    if models.EventProcessor.neuralNetworkManager.replayMemoryManager.canSample():
-        return jsonify(models.EventProcessor.neuralNetworkManager.replayMemoryManager.sampleList())
+    # return jsonify({"devEUI":device.deviceEUI, "data":device.data, "sleepTime":device.sleepTime})
+    return jsonify(myJson.to_dict())
+    # if models.EventProcessor.neuralNetworkManager.replayMemoryManager.canSample():
+    #     return jsonify(models.EventProcessor.neuralNetworkManager.replayMemoryManager.sampleList())
     
     return jsonify([])
 
