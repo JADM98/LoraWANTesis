@@ -34,7 +34,10 @@ class EventProcessor():
 
             #Process battery in neural network
             # sleepTime = neuralNetwork.step(device.battery, device.sleepTime)
-            sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device=device)
+            # sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device=device)
+            possibleSleeps = [1,2,3]
+            sleepTime = random.choice(possibleSleeps)
+            
 
             if device.didRestart:
                 print("Device was restarted, values set to: Battery = {}, SleepTime = {}, oldSleepTime = {}".format(

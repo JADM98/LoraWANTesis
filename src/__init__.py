@@ -34,9 +34,6 @@ def getAll():
         
 
 
-# Routes.addRoute(app=app, url="/test", function=lambda:jsonify({"message":"Ok"}))
-# Routes.addRoute(app=app, url="/test1", function=lambda:jsonify({"message":"Not Ok"}))
-# Routes.addRoute(app=app, url="/test2", function=lambda:jsonify({"message":"So so"}))
 models.Routes.addRoute(app=app, url="/test3", function=handleTest, methods=models.RouteMethods.POST)
 models.Routes.addRoute(app=app, url="/test3", function=getTest)
 models.Routes.addRoute(app=app, url="/memory", function=getAll)
