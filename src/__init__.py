@@ -34,6 +34,15 @@ def getTest():
 def getAll():
     return jsonify(models.EventProcessor.neuralNetworkManager.replayMemoryManager.getMemory())
         
+def getDevices():
+    devs = models.EventProcessor.devices
+    list1 = []
+
+    for dev in devs:
+        devDict = {"devEUI": dev.deviceEUI, "data":dev.data, "sleepTime":dev.sleepTime}
+        list1.append(devDict)
+
+    return jsonify(list1)
 
 
 models.Routes.addRoute(app=app, url="/test3", function=handleTest, methods=models.RouteMethods.POST)
