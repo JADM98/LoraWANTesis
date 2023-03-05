@@ -1,7 +1,7 @@
 import torch
 import random
 # import classes.transition as transition
-from models.networkUtils.transition import Transition
+from src.models.networkUtils.transition import Transition
 
 class ReplayMemory():
     def __init__(self, capacity:int=3000, batchSize:int=32) -> None:
