@@ -28,7 +28,7 @@ class EventProcessor():
             # device.setNoiseScalar(0.005)
             EventProcessor.devices.append(device)
         else:
-            if(device.deviceEUI != "77b30213637d902a"):
+            if(device.deviceEUI != "3b11628cd860f61e"):
                 return
             device.updateDevice(event)
             # if device.didRestart:
@@ -37,7 +37,7 @@ class EventProcessor():
             #Process battery in neural network
             # sleepTime = neuralNetwork.step(device.battery, device.sleepTime)
             # sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device=device)
-            possibleSleeps = [1,2,3]
+            possibleSleeps = [30,60,90]
             sleepTime = random.choice(possibleSleeps)
 
 
