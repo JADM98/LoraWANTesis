@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-import src.models as models
+from src import models
 from concurrent import futures
 
 device: models.LoraDevice
