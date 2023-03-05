@@ -1,5 +1,5 @@
 from base64 import b64decode
-from models.decode import DecoderFactory
+from src.models.decode import DecoderFactory
 import numpy as np
 
 class LoraDataParser():
