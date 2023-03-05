@@ -48,6 +48,7 @@ def getDevices():
 models.Routes.addRoute(app=app, url="/test3", function=handleTest, methods=models.RouteMethods.POST)
 models.Routes.addRoute(app=app, url="/test3", function=getTest)
 models.Routes.addRoute(app=app, url="/memory", function=getAll)
+models.Routes.addRoute(app=app, url="/devices", function=getDevices)
 
 if __name__ == '__main__':
     app.run(debug=False, port=4000)
