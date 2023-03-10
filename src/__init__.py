@@ -22,7 +22,11 @@ def getTest():
 
 def getAll():
     return jsonify(models.EventProcessor.neuralNetworkManager.replayMemoryManager.getMemory())
+
+def returnOk():
+    return jsonify({"message":"Ok"})
         
 models.Routes.addRoute(app=app, url="/info", function=handleTest, methods=models.RouteMethods.POST)
 models.Routes.addRoute(app=app, url="/info", function=getTest)
 models.Routes.addRoute(app=app, url="/memory", function=getAll)
+models.Routes.addRoute(app=app, url="/test", function=returnOk)
