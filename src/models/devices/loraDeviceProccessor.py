@@ -6,6 +6,7 @@ from src.models.secrets import Secrets
 from src.models.networkUtils.networkManager import NetworkManager
 from src.models.networkUtils.replayMemoryManager import ReplayMemoryManager
 
+from threading import Thread
 import random
 
 class EventProcessor():
@@ -19,11 +20,11 @@ class EventProcessor():
     @staticmethod
     def process(event: Event):
         #Check if it exist in current list
-        sleepTime = None
         device = next((device for device in EventProcessor.devices if device.checkEUIMatch(event)), None)
         if device is None:
             # device = LoraDeviceKalmanFiltered(event)
             device = LoraDevice(event)
+            sleepTime = device.sleepTime
             # device.setStdDevBattery(1.0)
             # device.setNoiseScalar(0.005)
             EventProcessor.devices.append(device)
@@ -43,10 +44,12 @@ class EventProcessor():
             # sleepTime = device.sleepTime + random.randrange(-1, 2, 1)
             device.setNewSleepTime(sleepTime)
 
-            #Post to LoRaWAN Gateway
-            EventProcessor.queueManager.enqueueSleepTime(device, sleepTime=sleepTime)
-            # print("Iteration: {}, Battery: {}, SleepTime: {}, oldSleepTime: {}, didRestart: {}".format(
-            #     EventProcessor.neuralNetworkManager.counter, device.battery,device.sleepTime, device.oldSleepTime, device.didRestart))
+        #Post to LoRaWAN Gateway
+        queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, sleepTime])
+        queueThread.start()
+        queueThread.join()
+        # print("Iteration: {}, Battery: {}, SleepTime: {}, oldSleepTime: {}, didRestart: {}".format(
+        #     EventProcessor.neuralNetworkManager.counter, device.battery,device.sleepTime, device.oldSleepTime, device.didRestart))
         
         return sleepTime
         # pass

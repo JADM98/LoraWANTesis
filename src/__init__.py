@@ -3,7 +3,6 @@ import src.models as models
 from concurrent import futures
 
 app = Flask(__name__)
-threadPool = futures.ThreadPoolExecutor(max_workers=4)
 
 def handleTest():
     global myJson
