@@ -15,10 +15,7 @@ def handleTest():
     return jsonify({"message":"Rejected, body was not a json"})
 
 def getTest():
-    if models.EventProcessor.neuralNetworkManager.replayMemoryManager.canSample():
-        return jsonify(models.EventProcessor.neuralNetworkManager.replayMemoryManager.sampleList())
-    
-    return jsonify([])
+    return jsonify(myJson.to_dict())
 
 def getAll():
     return jsonify(models.EventProcessor.neuralNetworkManager.replayMemoryManager.getMemory())
