@@ -1,6 +1,6 @@
 import requests
 from base64 import b64encode
-import models
+import src.models as models
 
 class LoraQueueManager():
     def __init__(self, baseURL:str, token:str) -> None:

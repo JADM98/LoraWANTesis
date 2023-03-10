@@ -1,6 +1,6 @@
 from flask import Flask
 from typing import Callable
-from utility.functions import LambdaUtils
+from src.utility.functions import LambdaUtils
 
 class RouteMethods:
     #static Variables
