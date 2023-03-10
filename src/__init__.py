@@ -25,8 +25,12 @@ def getAll():
 
 def returnOk():
     return jsonify({"message":"Ok"})
+
+def returnHello():
+    return "This ain't the page you're looking for, but is good to see you here"
         
 models.Routes.addRoute(app=app, url="/info", function=handleTest, methods=models.RouteMethods.POST)
 models.Routes.addRoute(app=app, url="/info", function=getTest)
 models.Routes.addRoute(app=app, url="/memory", function=getAll)
 models.Routes.addRoute(app=app, url="/test", function=returnOk)
+models.Routes.addRoute(app=app, url="/", function=returnHello)
