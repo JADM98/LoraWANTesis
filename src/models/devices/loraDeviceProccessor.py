@@ -28,7 +28,10 @@ class EventProcessor():
             # device.setNoiseScalar(0.005)
             EventProcessor.devices.append(device)
         else:
-            device.updateDevice(event)
+            didUpdate = device.updateDevice(event)
+
+            if not didUpdate:
+                return 0
             # if device.didRestart:
             #     device.setNewSleepTime(10)
 
