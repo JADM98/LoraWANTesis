@@ -1,7 +1,8 @@
+import os
 import sys
-sys.path.append("src")
+sys.path.insert(0, os.getcwd())
 
-import models
+from src import models
 
 
 data = "AGQ=" #0x0064 = [0, 100]

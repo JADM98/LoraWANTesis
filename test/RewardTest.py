@@ -1,8 +1,8 @@
+import os
 import sys
+sys.path.insert(0, os.getcwd())
 
-sys.path.append("src")
-
-import models
+from src import models
 
 # energies = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 energies = [65, 80, 96]
