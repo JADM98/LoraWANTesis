@@ -30,7 +30,12 @@ class EventProcessor():
 
             queueThread.join()
         else:
-            device.updateDevice(event)
+            didUpdate = device.updateDevice(event)
+
+            if not didUpdate:
+                return 0
+            # if device.didRestart:
+            #     device.setNewSleepTime(10)
 
             sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device=device)
             device.setNewSleepTime(sleepTime)

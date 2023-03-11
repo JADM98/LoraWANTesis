@@ -23,6 +23,12 @@ class LoraDev(ABC):
     @abstractproperty
     def didRestart(self) -> bool:
         pass
+    @abstractproperty
+    def fPort(self) -> int:
+        pass
+    @abstractproperty
+    def fCount(self) -> bool:
+        pass
     @abstractmethod
     def checkEUIMatch(self, jsonEvent:Event) -> bool:
         pass
@@ -53,6 +59,12 @@ class LoraDevice(LoraDev):
     @property
     def oldSleepTime(self) -> float:
         return float(self.__oldSleepTime)
+    @property
+    def fPort(self) -> int:
+        return self.__fPort
+    @property
+    def fCount(self) -> bool:
+        return self.__fCount
     
 
     def __init__(self, jsonEvent:Event) -> None:
@@ -64,6 +76,8 @@ class LoraDevice(LoraDev):
         self.__didRestart = loraData.didRestart
         self.__sleepTime = 10
         self.__oldSleepTime = 10
+        self.__fPort = jsonEvent.fPort
+        self.__fCount = jsonEvent.fCnt
 
     def checkEUIMatch(self, jsonEvent:Event) -> bool:
         decoder:str = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
@@ -72,10 +86,15 @@ class LoraDevice(LoraDev):
 
     def updateDevice(self, jsonEvent:Event) -> bool:
         if self.checkEUIMatch(jsonEvent):
+
+            if jsonEvent.fPort != 1:
+                return False
+            
             loraData = LoraDataParser(jsonEvent.data)
             self.__data = loraData.data
             self.__battery = loraData.battery
             self.__didRestart = loraData.didRestart
+            self.__fCount = jsonEvent.fCnt
             if loraData.didRestart:
                 self.setNewSleepTime(10)
                 # self.__sleepTime = 10
@@ -108,6 +127,12 @@ class LoraDeviceKalmanFiltered(LoraDev):
     @property
     def oldSleepTime(self) -> float:
         return float(self.__oldSleepTime)
+    @property
+    def fPort(self) -> int:
+        return self.__fPort
+    @property
+    def fCount(self) -> bool:
+        return self.__fCount
 
     def __init__(self, jsonEvent: Event) -> None:
         decoder = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
@@ -120,6 +145,8 @@ class LoraDeviceKalmanFiltered(LoraDev):
         self.__sleepTime = 10   #minutes
         self.__oldSleepTime = self.__sleepTime
         self.__kalman.setInitialValues(self.battery)
+        self.__fPort = jsonEvent.fPort
+        self.__fCount = jsonEvent.fCnt
         print("Starting battery: {}".format(self.__battery))
 
     def checkEUIMatch(self, jsonEvent:Event) -> bool:
@@ -130,6 +157,9 @@ class LoraDeviceKalmanFiltered(LoraDev):
 
     def updateDevice(self, jsonEvent: Event) -> bool:
         if self.checkEUIMatch(jsonEvent):
+            if jsonEvent.fPort != 1:
+                return False
+
             loraData = LoraDataParser(jsonEvent.data)
             self.__data = loraData.data
             self.__battery = loraData.battery
