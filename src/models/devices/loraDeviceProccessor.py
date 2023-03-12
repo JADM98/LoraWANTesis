@@ -28,7 +28,7 @@ class EventProcessor():
 
             EventProcessor.devices.append(device)
 
-            queueThread.join()
+            # queueThread.join()
         else:
             didUpdate = device.updateDevice(event)
 
@@ -43,6 +43,6 @@ class EventProcessor():
             #Post to LoRaWAN Gateway
             queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, sleepTime])
             queueThread.start()
-            queueThread.join()
+            # queueThread.join()
 
         return sleepTime
