@@ -7,7 +7,7 @@ from src import models
 # energies = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 energies = [65, 80, 96]
 targetEnergy = 80
-sleepTimes = [i for i in range(1, 61)]
+sleepTimes = [i for i in [1, 10, 20, 30, 40, 50, 60]]
 
 # models.RewardCalculator.calculate()
 

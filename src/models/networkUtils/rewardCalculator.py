@@ -19,30 +19,29 @@ class RewardCalculatorEnergyConservation():
     @staticmethod
     def calculate(energy:int, targetEnergy:int, sleepTimeDifference:int):
         #If new time is less
+        energyDifference = energy - targetEnergy
+
         if sleepTimeDifference < 0:
-            energy = targetEnergy - energy
-            if energy < -10:
-                reward = float(-energy/3 + 200/3)
-            if energy >= -10 and energy <= 10:
-                reward = float(-0.07 * np.power(energy, 3))
-            if energy > 10:
-                reward = float(-energy/3 - 200/3)
+            if energyDifference > 10:
+                reward = float(energyDifference/3 + 200/3)
+            if energyDifference >= -10 and energyDifference <= 10:
+                reward = float(0.07 * np.power(energyDifference, 3))
+            if energyDifference < -10:
+                reward = float(energyDifference/3 - 200/3)
 
         if sleepTimeDifference == 0:
-            energy = targetEnergy - energy
-            if energy >= -10 and energy <= 10:
-                reward = float(- np.power(energy, 2) + 100)
+            if energyDifference >= -10 and energyDifference <= 10:
+                reward = float(- np.power(energyDifference, 2) + 100)
             else:
                 reward = float(-50)
 
         if sleepTimeDifference > 0:
-            energy = targetEnergy - energy
-            if energy < -10:
-                reward = float(energy/3 - 200/3)
-            if energy >= -10 and energy <= 10:
-                reward = float(0.07 * np.power(energy, 3))
-            if energy > 10:
-                reward = float(energy/3 + 200/3)
+            if energyDifference > 10:
+                reward = float(-energyDifference/3 - 200/3)
+            if energyDifference >= -10 and energyDifference <= 10:
+                reward = float(-0.07 * np.power(energyDifference, 3))
+            if energyDifference < -10:
+                reward = float(-energyDifference/3 + 200/3)
         
         return reward / 100
 
