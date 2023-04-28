@@ -27,7 +27,7 @@ class NetworkManager():
             newSleepTime = self.maximumTS
 
         reward = RewardCalculator.calculate(
-            energy=device.battery, targetEnergy=self.targetEnergy, newSleepTime=newSleepTime, oldSleepTime=device.sleepTime)
+            energy=device.battery, targetEnergy=self.targetEnergy, newSleepTime=self.actions[action], oldSleepTime=device.sleepTime)
 
         if device.didRestart:
             self.replayMemoryManager.addFailure(device=device)
@@ -36,6 +36,8 @@ class NetworkManager():
 
         if self.replayMemoryManager.canSample():
             self.qNetwork.train(self.replayMemoryManager.sample())
+
+        print("Battery: "+str(device.battery)+"SleepTime: "+str(newSleepTime) +" Reward: "+str(reward) + "Action taken: "+str(self.actions[action]))
 
         return int(newSleepTime)
 
