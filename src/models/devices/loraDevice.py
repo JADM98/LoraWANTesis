@@ -3,6 +3,7 @@ from src.models.decode import *
 from src.models.kalmanFilter.simplifiedKalmanFilter import SimplifiedKalmanFilter
 from abc import ABC, abstractmethod, abstractproperty
 from src.models.eventUtils.loraDataParser import LoraDataParser
+from src.models.networkUtils.qNetworkConstants import QConstants
 
 class LoraDev(ABC):
     @abstractproperty
@@ -74,8 +75,8 @@ class LoraDevice(LoraDev):
         self.__data = loraData.data
         self.__battery = loraData.battery
         self.__didRestart = loraData.didRestart
-        self.__sleepTime = 10
-        self.__oldSleepTime = 10
+        self.__sleepTime = QConstants.INITIAL_SLEEP_TIME
+        self.__oldSleepTime = QConstants.INITIAL_SLEEP_TIME
         self.__fPort = jsonEvent.fPort
         self.__fCount = jsonEvent.fCnt
 
@@ -102,11 +103,13 @@ class LoraDevice(LoraDev):
         return False
 
     def setNewSleepTime(self, sleepTime:int) -> bool:
-        if sleepTime <= 60 and sleepTime >= 1:
-            self.__oldSleepTime = self.__sleepTime
-            self.__sleepTime = sleepTime
-            return True
-        return False
+        if sleepTime > QConstants.MAXIMUM_TS:
+            sleepTime = QConstants.MAXIMUM_TS
+        if sleepTime < QConstants.MINIMUM_TS:
+            sleepTime = QConstants.MINIMUM_TS
+        
+        self.__sleepTime = sleepTime
+        return True
 
 class LoraDeviceKalmanFiltered(LoraDev):
     @property
@@ -142,7 +145,7 @@ class LoraDeviceKalmanFiltered(LoraDev):
         self.__battery = loraData.battery
         self.__didRestart = loraData.didRestart
         self.__kalman = SimplifiedKalmanFilter()
-        self.__sleepTime = 10   #minutes
+        self.__sleepTime = QConstants.INITIAL_SLEEP_TIME   #minutes
         self.__oldSleepTime = self.__sleepTime
         self.__kalman.setInitialValues(self.battery)
         self.__fPort = jsonEvent.fPort
@@ -165,7 +168,7 @@ class LoraDeviceKalmanFiltered(LoraDev):
             self.__battery = loraData.battery
             self.__didRestart = loraData.didRestart
             if loraData.didRestart:
-                self.__sleepTime = 10
+                self.__sleepTime = QConstants.INITIAL_SLEEP_TIME
                 self.__kalman.setNewMeasureTime(self.__sleepTime)
                 self.__kalman.setInitialValues(self.battery)
             else:
@@ -187,9 +190,10 @@ class LoraDeviceKalmanFiltered(LoraDev):
         return self.__kalman.predictNSteps(steps)
 
     def setNewSleepTime(self, sleepTime:int) -> bool:
-        if sleepTime <= 60 and sleepTime >= 1:
-            self.__oldSleepTime = self.__sleepTime
-            self.__sleepTime = sleepTime
-            self.__kalman.setNewMeasureTime(self.__sleepTime)
-            return True
-        return False
+        if sleepTime > QConstants.MAXIMUM_TS:
+            sleepTime = QConstants.MAXIMUM_TS
+        if sleepTime < QConstants.MINIMUM_TS:
+            sleepTime = QConstants.MINIMUM_TS
+        
+        self.__sleepTime = sleepTime
+        return True

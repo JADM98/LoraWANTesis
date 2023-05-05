@@ -8,7 +8,9 @@ def handleTest():
     global myJson
     if request.is_json:
         myJson = models.Event.from_dict(request.json)
-        sleepTime = models.EventProcessor.process(event=myJson)
+        sleepTime = models.EventProcessor.process(event=myJson)    #We cast floating to int 0.25 -> 1, 30 -> 120
+        sleepTime = int(sleepTime * 4)
+        print("Returned sleepTime: " + str(sleepTime))
         return jsonify({"sleepTime":sleepTime})
     
     return jsonify({"message":"Rejected, body was not a json"})
