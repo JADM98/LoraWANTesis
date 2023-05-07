@@ -20,9 +20,9 @@ class QNetwork():
             nn.Linear(32, QConstants.NUMBER_OF_ACTIONS),
         )
         self.gamma = 0.95
-        self.lr = 0.001
+        self.lr = 0.005
         self.optim = AdamW(self.neuralNetwork.parameters(), lr=self.lr)
-        self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optim, 1000, self.lr*0.05)
+        self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optim, 1000, self.lr*0.1)
         self.targetNN = copy.deepcopy(self.neuralNetwork).eval()
         self.counter = 0
         self.epsilon = 0.0
@@ -38,14 +38,14 @@ class QNetwork():
 
     def evaluate(self, energy:float, sleepTime:float) -> int:
         x = self.counter
-        if 2*x <= 1000:
-            self.epsilon = float(np.exp(2*x/1442.6950) - 1) * 0.65
-        elif x <= 2000 and x > 500:
-            self.epsilon = 0.65
-        elif x < 3500:
-            self.epsilon = 0.80
+        if x * 4 <= 1000:
+            self.epsilon = float(np.exp(4*x/1442.6950) - 1) * 0.65
+        elif x <= 1000 and x > 250:
+            self.epsilon = 0.50
+        elif x < 2500:
+            self.epsilon = 0.75
         else:
-            self.epsilon = 0.95
+            self.epsilon = 0.90
 
         if (random.random() < self.epsilon):
             actionTaken:torch.Tensor = self.neuralNetwork(torch.tensor([energy, sleepTime]))

@@ -5,15 +5,21 @@ class RewardCalculator():
 
     @staticmethod
     def calculate(energy:int, targetEnergy:int, sleepTimeChange:int, currentSleepTime:int):
-        rewardEnergy = RewardCalculatorEnergyConservation.calculate(energy, targetEnergy, sleepTimeChange)
-        rewardTransmit = RewardCalculatorFastTransmission.calculate(2*(sleepTimeChange + currentSleepTime))
-        reward = rewardEnergy * 0.8 + rewardTransmit * 0.2
-        rewardAdapted = RewardCalculatorEnergyConservation.adapt(
-            reward, energy, targetEnergy, sleepTimeChange)
+        # rewardNewSleep = RewardCalculatorChangeSleep.calculate(energy, targetEnergy, sleepTimeChange)
+        # rewardEnergy = RewardCalculatorEnergyObjective.calculate(energy, targetEnergy)
+        # rewardTransmit = RewardCalculatorFastTransmission.calculate(2*(sleepTimeChange + currentSleepTime))
+        # reward = rewardNewSleep * 0.8 + rewardTransmit * 0.2 + rewardEnergy
+        # rewardAdapted = RewardCalculatorChangeSleep.adapt(
+        #     reward, energy, targetEnergy, sleepTimeChange)
+        rewardNewSleep = RewardCalculatorChangeSleep.calculate(energy, targetEnergy, sleepTimeChange)
+        rewardNewSleep = RewardCalculatorChangeSleep.adapt(rewardNewSleep, energy, targetEnergy, sleepTimeChange)
+        rewardEnergy = RewardCalculatorEnergyObjective.calculate(energy, targetEnergy)
+        # rewardTransmit = RewardCalculatorFastTransmission.calculate(2*(sleepTimeChange + currentSleepTime))
 
-        return rewardAdapted
+        reward = rewardNewSleep + rewardEnergy
+        return reward
 
-class RewardCalculatorEnergyConservation():
+class RewardCalculatorChangeSleep():
 
     @staticmethod
     def calculate(energy:int, targetEnergy:int, sleepTimeChange:int):
@@ -51,15 +57,15 @@ class RewardCalculatorEnergyConservation():
         if energy <= -15 or energy >= 15:
             if newSleepTime == -QConstants.LOW_ACTION_CHANGE_VALUE or newSleepTime == QConstants.LOW_ACTION_CHANGE_VALUE:
                 if reward > 0:
-                    reward = reward * 0.25
-            elif newSleepTime == -QConstants.HIGH_ACTION_CHANGE_VALUE or newSleepTime == QConstants.HIGH_ACTION_CHANGE_VALUE:
-                reward = reward * 1.25
+                    reward = 0
+                else:
+                    reward *= 1.5
         if energy > -15 and energy < 15:
             if newSleepTime == -QConstants.HIGH_ACTION_CHANGE_VALUE or newSleepTime == QConstants.HIGH_ACTION_CHANGE_VALUE:
                 if reward > 0:
-                    reward = reward * 0.25
-            elif newSleepTime == -QConstants.LOW_ACTION_CHANGE_VALUE or newSleepTime == QConstants.LOW_ACTION_CHANGE_VALUE:
-                reward = reward * 1.25
+                    reward = 0
+                else: 
+                    reward *= 1.5
 
         return reward
 
@@ -72,3 +78,14 @@ class RewardCalculatorFastTransmission():
         if newSleepTime > QConstants.MAXIMUM_TS:
             newSleepTime = QConstants.MAXIMUM_TS
         return float(np.power(0.942454, newSleepTime))
+    
+class RewardCalculatorEnergyObjective():
+
+    @staticmethod
+    def calculate(energy:float, energyTarget:float) -> float:
+        energyDifference = np.absolute(energy - energyTarget)
+
+        if energyDifference <= 10:
+            return float(1 - energyDifference * 0.05) 
+        
+        return float(0.0)
