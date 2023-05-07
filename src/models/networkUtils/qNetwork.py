@@ -6,6 +6,8 @@ import copy
 import numpy as np
 import random
 
+from src.models.networkUtils.qNetworkConstants import QConstants
+
 class QNetwork():
     def __init__(self) -> None:
         self.neuralNetwork = nn.Sequential(
@@ -17,23 +19,31 @@ class QNetwork():
             nn.ReLU(),
             nn.Linear(32, 5),
         )
-        self.gamma = 0.95
-        self.lr = 0.0005
+        self.gamma = 0.90
+        self.lr = 0.001
         self.optim = AdamW(self.neuralNetwork.parameters(), lr=self.lr)
         self.targetNN = copy.deepcopy(self.neuralNetwork).eval()
         self.counter = 0
         self.epsilon = 0.0
         self.lossArray: np.array = np.array([])
 
+    def evaluateWithNoStep(self, energy:float, sleepTime:float) -> int:
+        with torch.no_grad():
+            actionTaken:torch.Tensor = self.neuralNetwork(torch.tensor([energy, sleepTime]))
+            actionTaken = torch.argmax(actionTaken, keepdim=True)
+            action = actionTaken.item()
+        return action
+
     def evaluate(self, energy:float, sleepTime:float) -> int:
         if self.counter <= 1000:
-            self.epsilon = float(0.65 - ( np.power(0.995404, self.counter) ) * 0.65 )
+            self.epsilon = float(np.exp(self.counter/1442.6950) - 1) * 0.65
         elif self.counter <= 1500 and self.counter > 1000:
             self.epsilon = 0.65
         else:
             self.epsilon = 0.9
 
         if (random.random() < self.epsilon):
+            print("Actual best action taken")
             # print("Actual energy: {}, Actual sleep time: {}".format(energy, sleepTime))
             actionTaken:torch.Tensor = self.neuralNetwork(torch.tensor([energy, sleepTime]))
             actionTaken = torch.argmax( actionTaken, keepdim=True )
@@ -73,7 +83,9 @@ class QNetwork():
         #Save loss value
         with torch.no_grad():
             self.lossArray = np.concatenate([self.lossArray, [loss.item()]])
+            print("Loss: " + str(loss.item()))
 
         #Each 10 iterations update target Neural Network parameters (thetas).
         if self.counter % 10 == 0:
+            print("Updated target NN")
             self.targetNN.load_state_dict(self.neuralNetwork.state_dict())
