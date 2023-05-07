@@ -39,6 +39,12 @@ class LoraDev(ABC):
     @abstractmethod
     def setNewSleepTime(self, sleepTime:int) -> bool:
         pass
+    @abstractmethod
+    def isPowered(self) -> bool:
+        pass
+    @abstractmethod
+    def command(self) -> int:
+        pass
 
 class LoraDevice(LoraDev):
 
@@ -66,7 +72,12 @@ class LoraDevice(LoraDev):
     @property
     def fCount(self) -> bool:
         return self.__fCount
-    
+    @property
+    def isPowered(self) -> bool:
+        return self.__isPowered == 0x01
+    @property
+    def command(self) -> int:
+        return self.__command
 
     def __init__(self, jsonEvent:Event) -> None:
         decoder = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
@@ -75,6 +86,8 @@ class LoraDevice(LoraDev):
         self.__data = loraData.data
         self.__battery = loraData.battery
         self.__didRestart = loraData.didRestart
+        self.__isPowered = loraData.isPowered
+        self.__command = loraData.command
         self.__sleepTime = QConstants.INITIAL_SLEEP_TIME
         self.__oldSleepTime = QConstants.INITIAL_SLEEP_TIME
         self.__fPort = jsonEvent.fPort
@@ -92,10 +105,12 @@ class LoraDevice(LoraDev):
                 return False
             
             loraData = LoraDataParser(jsonEvent.data)
-            self.__data = loraData.data
-            self.__battery = loraData.battery
+            self.__command = loraData.command
+            self.__isPowered = loraData.isPowered
             self.__didRestart = loraData.didRestart
+            self.__data = loraData.data
             self.__fCount = jsonEvent.fCnt
+            self.__battery = loraData.battery
             if loraData.didRestart:
                 self.setNewSleepTime(10)
                 # self.__sleepTime = 10

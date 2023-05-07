@@ -3,6 +3,7 @@ from src.models.devices.loraDevice import LoraDevice, LoraDev
 from src.models.queueManager.queueManager import LoraQueueManager
 from src.models.secrets import Secrets
 from src.models.networkUtils.networkManager import NetworkManager
+from src.models.networkUtils.qNetworkConstants import QConstants
 
 from threading import Thread
 import random
@@ -13,7 +14,12 @@ class EventProcessor():
         token=Secrets.TOKEN)
     # neuralNetwork = NeuralNetwork()
     neuralNetworkManager = NetworkManager()
-    # replayMemoryManager = ReplayMemoryManager()
+    # replayMemoryManager = ReplayMemoryManager()'
+
+    @staticmethod
+    def evaluateState(battery:int, sleepTime:float) -> float:
+        action = EventProcessor.neuralNetworkManager.evaluateWithNoTrain(battery, sleepTime)
+        return action
 
     @staticmethod
     def process(event: Event):
@@ -31,12 +37,17 @@ class EventProcessor():
             didUpdate = device.updateDevice(event)
 
             if not didUpdate:
-                return 0
+                return device.sleepTime
             # if device.didRestart:
             #     device.setNewSleepTime(10)
+            # print(device.isPowered, device.command)
+            if device.isPowered == False:
+                EventProcessor.neuralNetworkManager.endDaySession(device=device)
+                return QConstants.MAXIMUM_TS
 
             sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device=device)
             device.setNewSleepTime(sleepTime)
+            
 
             #Post to LoRaWAN Gateway
             # queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, sleepTime])
