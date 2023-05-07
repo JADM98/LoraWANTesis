@@ -5,8 +5,8 @@ sys.path.insert(0, os.getcwd())
 from src import models
 
 # energies = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-energies = [60, 85, 100]
-targetEnergy = 85
+energies = [65, 75, 85]
+targetEnergy = 80
 sleepTimes = [i for i in [0.25, 5, 10, 15, 20, 30]]
 
 # models.RewardCalculator.calculate()

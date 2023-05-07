@@ -19,13 +19,15 @@ class QNetwork():
             nn.ReLU(),
             nn.Linear(32, 5),
         )
-        self.gamma = 0.90
+        self.gamma = 0.95
         self.lr = 0.001
         self.optim = AdamW(self.neuralNetwork.parameters(), lr=self.lr)
+        self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optim, 1000, self.lr*0.01)
         self.targetNN = copy.deepcopy(self.neuralNetwork).eval()
         self.counter = 0
         self.epsilon = 0.0
         self.lossArray: np.array = np.array([])
+        self.epochWithoutTrainig = 0
 
     def evaluateWithNoStep(self, energy:float, sleepTime:float) -> int:
         with torch.no_grad():
@@ -35,16 +37,17 @@ class QNetwork():
         return action
 
     def evaluate(self, energy:float, sleepTime:float) -> int:
-        if self.counter <= 1000:
-            self.epsilon = float(np.exp(self.counter/1442.6950) - 1) * 0.65
-        elif self.counter <= 1500 and self.counter > 1000:
+        x = self.counter * 2
+        if x <= 1000:
+            self.epsilon = float(np.exp(x/1442.6950) - 1) * 0.65
+        elif x <= 2000 and x > 1000:
             self.epsilon = 0.65
+        elif x < 3500:
+            self.epsilon = 0.80
         else:
-            self.epsilon = 0.9
+            self.epsilon = 0.95
 
         if (random.random() < self.epsilon):
-            print("Actual best action taken")
-            # print("Actual energy: {}, Actual sleep time: {}".format(energy, sleepTime))
             actionTaken:torch.Tensor = self.neuralNetwork(torch.tensor([energy, sleepTime]))
             actionTaken = torch.argmax( actionTaken, keepdim=True )
             action = actionTaken.item()
@@ -80,6 +83,9 @@ class QNetwork():
         loss.backward()     
         self.optim.step()
 
+        if self.counter < 1000 + self.epochWithoutTrainig - 1:
+            self.learningRateScheduler.step()
+
         #Save loss value
         with torch.no_grad():
             self.lossArray = np.concatenate([self.lossArray, [loss.item()]])
@@ -89,3 +95,6 @@ class QNetwork():
         if self.counter % 10 == 0:
             print("Updated target NN")
             self.targetNN.load_state_dict(self.neuralNetwork.state_dict())
+
+    def exploringIterations(self, epochWithoutTrainig:float) -> None:
+        self.epochWithoutTrainig = epochWithoutTrainig

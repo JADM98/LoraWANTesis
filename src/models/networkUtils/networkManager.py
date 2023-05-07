@@ -14,6 +14,7 @@ class NetworkManager():
 
     def __init__(self, targetEnergy:float = 85.0, replayMemoryCapacity:int=3000, replayMemoryBatchSize:int=16) -> None:
         self.qNetwork = QNetwork()
+        self.qNetwork.exploringIterations(replayMemoryBatchSize * 10)
         self.replayMemoryManager = ReplayMemoryManager(capacity=replayMemoryCapacity, batchSize=replayMemoryBatchSize)
         self.targetEnergy = targetEnergy
         self.actions:list[float] = QConstants.ACTIONS

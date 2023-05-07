@@ -6,11 +6,12 @@ class RewardCalculator():
     @staticmethod
     def calculate(energy:int, targetEnergy:int, sleepTimeChange:int, currentSleepTime:int):
         rewardEnergy = RewardCalculatorEnergyConservation.calculate(energy, targetEnergy, sleepTimeChange)
-        rewardEnergy = RewardCalculatorEnergyConservation.adapt(
-            rewardEnergy, energy, targetEnergy, sleepTimeChange)
         rewardTransmit = RewardCalculatorFastTransmission.calculate(2*(sleepTimeChange + currentSleepTime))
+        reward = rewardEnergy * 0.8 + rewardTransmit * 0.2
+        rewardAdapted = RewardCalculatorEnergyConservation.adapt(
+            reward, energy, targetEnergy, sleepTimeChange)
 
-        return rewardEnergy * 0.8 + rewardTransmit * 0.2
+        return rewardAdapted
 
 class RewardCalculatorEnergyConservation():
 
@@ -29,7 +30,7 @@ class RewardCalculatorEnergyConservation():
 
         if sleepTimeChange == 0:
             if energyDifference >= -10 and energyDifference <= 10:
-                reward = float(- np.power(energyDifference, 2) + 100)
+                reward = float(- np.power( 2 * energyDifference, 2) + 100)
             else:
                 reward = float(-100)
 
@@ -47,14 +48,16 @@ class RewardCalculatorEnergyConservation():
     def adapt(reward:float, energy:int, targetEnergy:int, newSleepTime:int):
         energy = energy - targetEnergy
 
-        if energy <= -10 or energy >= 10:
+        if energy <= -15 or energy >= 15:
             if newSleepTime == -QConstants.LOW_ACTION_CHANGE_VALUE or newSleepTime == QConstants.LOW_ACTION_CHANGE_VALUE:
-                reward = reward * 0.60
-
-        if energy > -10 and energy < 10:
+                reward = reward * 0.50
+            elif newSleepTime == -QConstants.HIGH_ACTION_CHANGE_VALUE or newSleepTime == QConstants.HIGH_ACTION_CHANGE_VALUE:
+                reward = reward * 1.25
+        if energy > -15 and energy < 15:
             if newSleepTime == -QConstants.HIGH_ACTION_CHANGE_VALUE or newSleepTime == QConstants.HIGH_ACTION_CHANGE_VALUE:
-                reward = reward * 0.60
-
+                reward = reward * 0.50
+            elif newSleepTime == -QConstants.LOW_ACTION_CHANGE_VALUE or newSleepTime == QConstants.LOW_ACTION_CHANGE_VALUE:
+                reward = reward * 1.25
 
         return reward
 

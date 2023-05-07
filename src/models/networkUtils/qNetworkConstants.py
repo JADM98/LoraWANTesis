@@ -8,3 +8,4 @@ class QConstants():
     INITIAL_SLEEP_TIME = 10.0
     MAXIMUM_BAT = 100.0
     MINIMUM_BAT = 0.0
+    TARGET_ENERGY = 80.0

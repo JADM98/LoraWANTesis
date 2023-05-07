@@ -5,16 +5,11 @@ from src.models.secrets import Secrets
 from src.models.networkUtils.networkManager import NetworkManager
 from src.models.networkUtils.qNetworkConstants import QConstants
 
-from threading import Thread
-import random
-
 class EventProcessor():
     devices:list[LoraDev] = []
     queueManager = LoraQueueManager(baseURL=Secrets.LORA_URL, 
         token=Secrets.TOKEN)
-    # neuralNetwork = NeuralNetwork()
-    neuralNetworkManager = NetworkManager()
-    # replayMemoryManager = ReplayMemoryManager()'
+    neuralNetworkManager = NetworkManager(targetEnergy=QConstants.TARGET_ENERGY)
 
     @staticmethod
     def evaluateState(battery:int, sleepTime:float) -> float:
