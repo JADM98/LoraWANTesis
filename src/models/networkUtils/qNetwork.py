@@ -17,7 +17,7 @@ class QNetwork():
             nn.ReLU(),
             nn.Linear(64, 32),
             nn.ReLU(),
-            nn.Linear(32, 5),
+            nn.Linear(32, QConstants.NUMBER_OF_ACTIONS),
         )
         self.gamma = 0.95
         self.lr = 0.001
@@ -38,7 +38,7 @@ class QNetwork():
 
     def evaluate(self, energy:float, sleepTime:float) -> int:
         x = self.counter
-        if x <= 1000:
+        if 2*x <= 1000:
             self.epsilon = float(np.exp(2*x/1442.6950) - 1) * 0.65
         elif x <= 2000 and x > 500:
             self.epsilon = 0.65
@@ -52,7 +52,7 @@ class QNetwork():
             actionTaken = torch.argmax( actionTaken, keepdim=True )
             action = actionTaken.item()
         else:
-            action = random.randint(0, 4)
+            action = random.randint(0, QConstants.NUMBER_OF_ACTIONS - 1)
 
         self.counter += 1
 
