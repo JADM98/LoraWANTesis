@@ -50,12 +50,14 @@ class RewardCalculatorEnergyConservation():
 
         if energy <= -15 or energy >= 15:
             if newSleepTime == -QConstants.LOW_ACTION_CHANGE_VALUE or newSleepTime == QConstants.LOW_ACTION_CHANGE_VALUE:
-                reward = reward * 0.50
+                if reward > 0:
+                    reward = reward * 0.25
             elif newSleepTime == -QConstants.HIGH_ACTION_CHANGE_VALUE or newSleepTime == QConstants.HIGH_ACTION_CHANGE_VALUE:
                 reward = reward * 1.25
         if energy > -15 and energy < 15:
             if newSleepTime == -QConstants.HIGH_ACTION_CHANGE_VALUE or newSleepTime == QConstants.HIGH_ACTION_CHANGE_VALUE:
-                reward = reward * 0.50
+                if reward > 0:
+                    reward = reward * 0.25
             elif newSleepTime == -QConstants.LOW_ACTION_CHANGE_VALUE or newSleepTime == QConstants.LOW_ACTION_CHANGE_VALUE:
                 reward = reward * 1.25
 

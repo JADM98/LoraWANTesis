@@ -9,7 +9,9 @@ class EventProcessor():
     devices:list[LoraDev] = []
     queueManager = LoraQueueManager(baseURL=Secrets.LORA_URL, 
         token=Secrets.TOKEN)
-    neuralNetworkManager = NetworkManager(targetEnergy=QConstants.TARGET_ENERGY)
+    neuralNetworkManager = NetworkManager(
+        targetEnergy=QConstants.TARGET_ENERGY, replayMemoryBatchSize=QConstants.BATCH_SIZE,
+        replayMemoryCapacity=QConstants.REPLAY_MEMORY_CAPACITY)
 
     @staticmethod
     def evaluateState(battery:int, sleepTime:float) -> float:

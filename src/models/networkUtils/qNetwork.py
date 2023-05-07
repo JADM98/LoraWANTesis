@@ -89,11 +89,9 @@ class QNetwork():
         #Save loss value
         with torch.no_grad():
             self.lossArray = np.concatenate([self.lossArray, [loss.item()]])
-            print("Loss: " + str(loss.item()))
 
         #Each 10 iterations update target Neural Network parameters (thetas).
         if self.counter % 10 == 0:
-            print("Updated target NN")
             self.targetNN.load_state_dict(self.neuralNetwork.state_dict())
 
     def exploringIterations(self, epochWithoutTrainig:float) -> None:
