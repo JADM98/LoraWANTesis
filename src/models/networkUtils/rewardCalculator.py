@@ -36,7 +36,7 @@ class RewardCalculatorChangeSleep():
 
         if sleepTimeChange == 0:
             if energyDifference >= -5 and energyDifference <= 5:
-                reward = float(- np.power( 8 * energyDifference, 2) + 100)
+                reward = float(- np.power( 4 * energyDifference, 2) + 100)
             else:
                 reward = float(-100)
 
@@ -53,15 +53,16 @@ class RewardCalculatorChangeSleep():
     @staticmethod
     def adapt(reward:float, energy:int, targetEnergy:int, newSleepTime:int):
         energy = energy - targetEnergy
+        sleepTimeChange = np.absolute(newSleepTime)
 
         if energy <= -15 or energy >= 15:
-            if newSleepTime == -QConstants.LOW_ACTION_CHANGE_VALUE or newSleepTime == QConstants.LOW_ACTION_CHANGE_VALUE:
+            if sleepTimeChange == QConstants.LOW_ACTION_CHANGE_VALUE:
                 if reward > 0:
                     reward = 0
                 else:
                     reward *= 1.5
         if energy > -15 and energy < 15:
-            if newSleepTime == -QConstants.HIGH_ACTION_CHANGE_VALUE or newSleepTime == QConstants.HIGH_ACTION_CHANGE_VALUE:
+            if sleepTimeChange == QConstants.HIGH_ACTION_CHANGE_VALUE:
                 if reward > 0:
                     reward = 0
                 else: 
