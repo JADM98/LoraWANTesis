@@ -20,9 +20,10 @@ class QNetwork():
             nn.Linear(32, QConstants.NUMBER_OF_ACTIONS),
         )
         self.gamma = 0.95
-        self.lr = 0.005
+        self.lr = QConstants.INITIAL_LEARNING_RATE
         self.optim = AdamW(self.neuralNetwork.parameters(), lr=self.lr)
-        self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optim, 1000, self.lr*0.1)
+        self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            self.optim, QConstants.STEPS_TO_DECAY_LEARNING_RATE, QConstants.FINAL_LEARNING_RATE)
         self.targetNN = copy.deepcopy(self.neuralNetwork).eval()
         self.counter = 0
         self.epsilon = 0.0
