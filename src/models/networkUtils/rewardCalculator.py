@@ -35,8 +35,8 @@ class RewardCalculatorChangeSleep():
                 reward = float(energyDifference/3 - 200/3)
 
         if sleepTimeChange == 0:
-            if energyDifference >= -10 and energyDifference <= 10:
-                reward = float(- np.power( 2 * energyDifference, 2) + 100)
+            if energyDifference >= -5 and energyDifference <= 5:
+                reward = float(- np.power( 8 * energyDifference, 2) + 100)
             else:
                 reward = float(-100)
 
@@ -86,6 +86,6 @@ class RewardCalculatorEnergyObjective():
         energyDifference = np.absolute(energy - energyTarget)
 
         if energyDifference <= 10:
-            return float(1 - energyDifference * 0.05) 
+            return float(1 - energyDifference * 0.1) 
         
         return float(0.0)
