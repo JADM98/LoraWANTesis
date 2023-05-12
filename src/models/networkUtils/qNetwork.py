@@ -39,11 +39,11 @@ class QNetwork():
 
     def evaluate(self, energy:float, sleepTime:float) -> int:
         x = self.counter
-        if x * 4 <= 1000:
-            self.epsilon = float(np.exp(4*x/1442.6950) - 1) * 0.65
+        if x <= 250:
+            self.epsilon = float(np.exp(x/360.6738) - 1) * 0.50
         elif x <= 1000 and x > 250:
             self.epsilon = 0.50
-        elif x < 2500:
+        elif x < 4000:
             self.epsilon = 0.75
         else:
             self.epsilon = 0.90
