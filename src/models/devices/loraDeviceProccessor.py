@@ -14,9 +14,13 @@ class EventProcessor():
         replayMemoryCapacity=QConstants.REPLAY_MEMORY_CAPACITY)
 
     @staticmethod
-    def evaluateState(battery:int, sleepTime:float) -> float:
+    def evaluateState(battery:float, sleepTime:float) -> float:
         action = EventProcessor.neuralNetworkManager.evaluateWithNoTrain(battery, sleepTime)
         return action
+    
+    @staticmethod
+    def getAction(battery:int, sleepTime:float) -> int:
+        return EventProcessor.neuralNetworkManager.getActionWithNoTrain(battery, sleepTime)
 
     @staticmethod
     def process(event: Event):

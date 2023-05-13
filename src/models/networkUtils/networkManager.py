@@ -26,6 +26,9 @@ class NetworkManager():
     def evaluateWithNoTrain(self, battery:int, sleepTime:float) -> float:
         action = self.qNetwork.evaluateWithNoStep(energy=battery, sleepTime=sleepTime)
         return self.actions[action]
+    
+    def getActionWithNoTrain(self, battery:float, sleepTime:float) -> int:
+        return self.qNetwork.evaluateWithNoStep(energy=battery, sleepTime=sleepTime)
 
     def processNewSleepTime(self, device:LoraDev) -> float:
         #Normalization of data

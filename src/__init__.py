@@ -28,6 +28,19 @@ def getAction():
     
     return jsonify({"message":"Rejected, body was not a json"})
 
+def getActionMatrix():
+    batteries = [float(i / models.QConstants.MAXIMUM_BAT) for i in range(101)]
+    sleepTimes = [float(i*models.QConstants.STEP / models.QConstants.MAXIMUM_TS) for i in range(int(30 / models.QConstants.STEP) + 1)]
+    actions = []
+    for i in range(len(batteries)):
+        tempArray = []
+        for j in range(len(sleepTimes)):
+            action = models.EventProcessor.getAction(batteries[i], sleepTimes[j])
+            tempArray.append(action)
+        actions.append(tempArray)
+
+    return jsonify(actions)
+
 def getTest():
     return jsonify(myJson.to_dict())
 
@@ -42,7 +55,8 @@ def returnHello():
         
 models.Routes.addRoute(app=app, url="/device", function=handleTest, methods=models.RouteMethods.POST)
 models.Routes.addRoute(app=app, url="/device", function=getTest)
-models.Routes.addRoute(app=app, url="/evaluate/action", function=getAction, methods=models.RouteMethods.POST)
+models.Routes.addRoute(app=app, url="/evaluate/action", function=getAction)
+models.Routes.addRoute(app=app, url="/evaluate/model", function=getActionMatrix)
 models.Routes.addRoute(app=app, url="/memory", function=getAll)
 models.Routes.addRoute(app=app, url="/loss", function=getLoss)
 models.Routes.addRoute(app=app, url="/test", function=returnOk)
