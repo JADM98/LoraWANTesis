@@ -19,7 +19,7 @@ class QNetwork():
             nn.ReLU(),
             nn.Linear(32, QConstants.NUMBER_OF_ACTIONS),
         )
-        self.gamma = 0.95
+        self.gamma = QConstants.GAMMA
         self.lr = QConstants.INITIAL_LEARNING_RATE
         self.optim = AdamW(self.neuralNetwork.parameters(), lr=self.lr)
         self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
