@@ -42,16 +42,11 @@ class RewardCalculatorChangeSleep():
         if energy <= -15 or energy >= 15:
             if sleepTimeChange == QConstants.LOW_ACTION_CHANGE_VALUE:
                 if reward > 0:
-                    reward *= 0.5
-                else:
-                    reward *= 1.5
+                    reward *= 0
         if energy > -15 and energy < 15:
             if sleepTimeChange == QConstants.HIGH_ACTION_CHANGE_VALUE:
                 if reward > 0:
-                    reward *= 0.5
-                else: 
-                    reward *= 1.5
-
+                    reward *= 0
         return reward
     
     @staticmethod
