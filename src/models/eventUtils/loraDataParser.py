@@ -16,6 +16,6 @@ class LoraDataParser():
             self.data = []
         
         # self.didRestart = (self.command & 1) == 1
-        self.didRestart = False
+        self.didRestart = (self.command & 0x02) == 1
         self.isPowered = (self.command & 1) == 1
         self.commandData = self.command >> 1
