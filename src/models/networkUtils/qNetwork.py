@@ -84,7 +84,7 @@ class QNetwork():
         loss.backward()     
         self.optim.step()
 
-        if self.counter < 1000 + self.epochWithoutTrainig - 1:
+        if self.counter < QConstants.STEPS_TO_DECAY_LEARNING_RATE + self.epochWithoutTrainig - 1:
             self.learningRateScheduler.step()
 
         #Save loss value
