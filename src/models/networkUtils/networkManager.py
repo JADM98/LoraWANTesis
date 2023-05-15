@@ -63,3 +63,6 @@ class NetworkManager():
         timeSleep = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
 
         self.replayMemoryManager.addEndOfDay(device, energy, timeSleep)
+
+    def addFailure(self, device:LoraDev) -> None:
+        self.replayMemoryManager.addFailure(device)

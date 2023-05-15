@@ -39,9 +39,9 @@ class EventProcessor():
 
             if not didUpdate:
                 return device.sleepTime
-            # if device.didRestart:
-            #     device.setNewSleepTime(10)
-            # print(device.isPowered, device.command)
+            if device.didRestart:
+                device.setNewSleepTime(10)
+                EventProcessor.neuralNetworkManager.replayMemoryManager.addFailure(device)
             if device.isPowered == False:
                 EventProcessor.neuralNetworkManager.endDaySession(device=device)
                 return QConstants.MAXIMUM_TS
