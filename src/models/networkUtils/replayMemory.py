@@ -11,6 +11,17 @@ class ReplayMemory():
         self.memory:list[Transition] = []
         self.position = 0
 
+    @staticmethod
+    def fromDictList(data: list[dict[str, str]], capacity:int=3000, batchSize:int=32) -> 'ReplayMemory':
+        replayMemory = ReplayMemory(capacity, batchSize)
+        # replayMemory.memory = data
+        replayMemory.memory = []
+        for transitionData in data:
+            transitionTemp = Transition.fromDict(transitionData)
+            replayMemory.insert(transitionTemp)
+
+        return replayMemory
+
     def insert(self, transition:Transition) -> None:
         if len(self.memory) < self.capacity:
             self.memory.append(None)

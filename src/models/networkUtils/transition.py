@@ -1,12 +1,29 @@
+import ast
+
 class Transition():
-    def __init__(self, id:str, data:list, action:int, reward:float) -> None:
+    #data is an array of 2 elements.
+    #First element is energy and second is sleepTime
+    def __init__(self, id:str, data:list[float], action:int, reward:float) -> None:
         self.id = id
         self.state = data
         self.action = action
         self.reward = reward
         self.nextState:list = []
     
-    def addNextState(self, data:list):
+    @staticmethod
+    def fromDict(data: dict) -> 'Transition':
+
+        state = ast.literal_eval(data["state"])
+        action = int(data["action"])
+        reward = float(data["reward"])
+        nextState = ast.literal_eval(data["nextState"])
+
+        transitionTemp = Transition(
+            id=data["id"], data=state, action=action, reward=reward)
+        transitionTemp.addNextState(nextState)
+        return transitionTemp
+
+    def addNextState(self, data:list[float]):
         self.nextState = data
 
     def toList(self, showId=True) -> list[list]:
@@ -14,3 +31,25 @@ class Transition():
         if showId:
             myList.insert(0, [self.id])
         return myList
+    
+    def toDict(self) -> dict[str, any]:
+        data = {
+            "id": self.id,
+            "state": self.state,
+            "action": self.action,
+            "reward": self.reward,
+            "nextState": self.nextState
+        }
+
+        return data
+    
+    def toStringDict(self) -> dict[str, str]:
+        data = {
+            "id": self.id,
+            "state": str(self.state),
+            "action": str(self.action),
+            "reward": str(self.reward),
+            "nextState": str(self.nextState)
+        }
+
+        return data
