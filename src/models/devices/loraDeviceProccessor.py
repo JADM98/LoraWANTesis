@@ -30,7 +30,7 @@ class EventProcessor():
             device = LoraDevice(event)
             sleepTime = device.sleepTime
 
-            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, sleepTime])
+            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
             queueThread.start()
 
             EventProcessor.devices.append(device)
@@ -51,7 +51,7 @@ class EventProcessor():
             
 
             #Post to LoRaWAN Gateway
-            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, sleepTime])
+            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
             queueThread.start()
 
         return sleepTime
