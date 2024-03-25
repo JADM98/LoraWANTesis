@@ -3,11 +3,12 @@ import ast
 class Transition():
     #data is an array of 2 elements.
     #First element is energy and second is sleepTime
-    def __init__(self, id:str, data:list[float], action:int, reward:float) -> None:
+    def __init__(self, id:str, data:list[float], action:int, reward:float, time:str) -> None:
         self.id = id
         self.state = data
         self.action = action
         self.reward = reward
+        self.time = time
         self.nextState:list = []
     
     @staticmethod
@@ -19,7 +20,7 @@ class Transition():
         nextState = ast.literal_eval(data["nextState"])
 
         transitionTemp = Transition(
-            id=data["id"], data=state, action=action, reward=reward)
+            id=data["id"], data=state, action=action, reward=reward, time=data["time"])
         transitionTemp.addNextState(nextState)
         return transitionTemp
 
@@ -38,7 +39,8 @@ class Transition():
             "state": self.state,
             "action": self.action,
             "reward": self.reward,
-            "nextState": self.nextState
+            "nextState": self.nextState,
+            "time": self.time
         }
 
         return data
@@ -49,7 +51,8 @@ class Transition():
             "state": str(self.state),
             "action": str(self.action),
             "reward": str(self.reward),
-            "nextState": str(self.nextState)
+            "nextState": str(self.nextState),
+            "time": str(self.time)
         }
 
         return data

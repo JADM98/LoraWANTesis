@@ -21,7 +21,7 @@ class ReplayMemoryManager():
     def add(self, device:LoraDev, actionTaken:int, reward:float, energy:float, sleepTime:float) -> None:
         existingTransition = next((tran for tran in self.currentTransitionList if tran.id == device.deviceEUI), None)
 
-        transition = Transition(device.deviceEUI, [energy, sleepTime], actionTaken, reward)
+        transition = Transition(device.deviceEUI, [energy, sleepTime], actionTaken, reward, device.time)
         self.currentTransitionList.append(transition)
 
         if existingTransition is not None:

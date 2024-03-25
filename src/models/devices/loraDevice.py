@@ -30,6 +30,9 @@ class LoraDev(ABC):
     @abstractproperty
     def fCount(self) -> bool:
         pass
+    @abstractproperty
+    def time(self) -> str:
+        pass
     @abstractmethod
     def checkEUIMatch(self, jsonEvent:Event) -> bool:
         pass
@@ -78,6 +81,9 @@ class LoraDevice(LoraDev):
     @property
     def command(self) -> int:
         return self.__command
+    @property
+    def time(self) -> str:
+        return self.__time
 
     def __init__(self, jsonEvent:Event) -> None:
         decoder = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
@@ -92,6 +98,7 @@ class LoraDevice(LoraDev):
         self.__oldSleepTime = QConstants.INITIAL_SLEEP_TIME
         self.__fPort = jsonEvent.fPort
         self.__fCount = jsonEvent.fCnt
+        self.__time = jsonEvent.publishedAt
 
     def checkEUIMatch(self, jsonEvent:Event) -> bool:
         decoder:str = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
@@ -151,6 +158,9 @@ class LoraDeviceKalmanFiltered(LoraDev):
     @property
     def fCount(self) -> bool:
         return self.__fCount
+    @property
+    def time(self) -> str:
+        return self.__time
 
     def __init__(self, jsonEvent: Event) -> None:
         decoder = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)
@@ -165,7 +175,7 @@ class LoraDeviceKalmanFiltered(LoraDev):
         self.__kalman.setInitialValues(self.battery)
         self.__fPort = jsonEvent.fPort
         self.__fCount = jsonEvent.fCnt
-        print("Starting battery: {}".format(self.__battery))
+        self.__time = jsonEvent.publishedAt
 
     def checkEUIMatch(self, jsonEvent:Event) -> bool:
         decoder = DecoderFactory.create(DecoderFactory.BASE64_2_HEX)

@@ -1,9 +1,16 @@
+import os
+import threading
+
 class BasicFileHandler():
 
     def __init__(self, fileName : str) -> None:
         self.__fileName = fileName
+        if not os.path.isfile(self.__fileName):
+            file = open(self.__fileName, 'x')
+            file.close()
 
     def writeDict(self, data: dict[str, str]) -> None:
+
         with open(self.__fileName, 'a') as file:
             stringTemp = ""
             for key, value in data.items():
@@ -16,8 +23,13 @@ class BasicFileHandler():
     def readLastLine(self) -> dict[str, str] | None:
         line = None
         data = None
+
+        # FileLocks.acquire(self.__fileName)
+
         with open(self.__fileName, 'r') as file:
             line = file.readline()
+
+        # FileLocks.release(self.__fileName)
 
         if line is not None and line != '':
             data = self.__parseLineIntoData(line)
@@ -27,11 +39,15 @@ class BasicFileHandler():
     def read(self) -> list[dict[str, str]] | None:
         lines = []
 
+        # FileLocks.acquire(self.__fileName)
+
         with open(self.__fileName, 'r') as file:
             line = file.readline()
             while line is not None and line != '':
                 lines.append(line)
                 line = file.readline()
+
+        # FileLocks.acquire(self.__fileName)
 
         data = []
         for lineTemp in lines:
@@ -51,3 +67,18 @@ class BasicFileHandler():
             data[key] = value
 
         return data
+    
+    # def __writeHandler(self, data: dict[str, str]):
+        
+    #     FileLocks.acquire(self.__fileName)
+
+    #     with open(self.__fileName, 'a') as file:
+    #         stringTemp = ""
+    #         for key, value in data.items():
+    #             stringTemp += key + "=" + value + "|"
+    #         stringTemp = stringTemp[:-1]
+    #         stringTemp += "\n"
+            
+    #         file.write(stringTemp)
+
+    #     FileLocks.release(self.__fileName)
