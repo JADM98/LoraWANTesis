@@ -1,8 +1,17 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 import src.models as models
 import numpy as np
 
 app = Flask(__name__)
+
+def getLossFile():
+    return send_file("../loss-data.txt", as_attachment=True)
+
+def getDeviceDataFile():
+    return send_file("../device-data.txt", as_attachment=True)
+
+def getModelFile():
+    return send_file("../model.pth", as_attachment=True)
 
 def handleTest():
     global myJson
@@ -61,3 +70,6 @@ models.Routes.addRoute(app=app, url="/memory", function=getAll)
 models.Routes.addRoute(app=app, url="/loss", function=getLoss)
 models.Routes.addRoute(app=app, url="/test", function=returnOk)
 models.Routes.addRoute(app=app, url="/", function=returnHello)
+models.Routes.addRoute(app=app, url="/files/model", function=getModelFile)
+models.Routes.addRoute(app=app, url="/files/loss", function=getLossFile)
+models.Routes.addRoute(app=app, url="/files/device-data", function=getDeviceDataFile)
