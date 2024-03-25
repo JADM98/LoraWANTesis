@@ -5,8 +5,11 @@ from src.models.queueManager.queueManager import LoraQueueManager
 from src.models.secrets import Secrets
 from src.models.networkUtils.networkManager import NetworkManager
 from src.models.networkUtils.qNetworkConstants import QConstants
+from src.models.file_handlers.basic_file_handler import BasicFileHandler
 
 class EventProcessor():
+    __counter = 0
+    __fileHandler = BasicFileHandler("action-matrix.txt")
     devices:list[LoraDev] = []
     queueManager = LoraQueueManager(baseURL=Secrets.LORA_URL, 
         token=Secrets.TOKEN)
@@ -52,4 +55,26 @@ class EventProcessor():
             queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
             queueThread.start()
 
+            EventProcessor.__counter += 1
+            if EventProcessor.__counter % 500 == 0:
+                matrixTrhead = Thread(target=EventProcessor.__saveActionMatrix)
+                matrixTrhead.start()
         return sleepTime
+    
+    @staticmethod
+    def __saveActionMatrix():
+        counter = str(EventProcessor.__counter)
+
+        batteries = [float(i / QConstants.MAXIMUM_BAT) for i in range(101)]
+        sleepTimes = [float(i * QConstants.STEP / QConstants.MAXIMUM_TS) for i in range(int(30 / QConstants.STEP) + 1)]
+        actions = []
+        for i in range(len(batteries)):
+            tempArray = []
+            for j in range(len(sleepTimes)):
+                action = EventProcessor.getAction(batteries[i], sleepTimes[j])
+                tempArray.append(action)
+            actions.append(tempArray)
+
+        EventProcessor.__fileHandler.writeDict({
+            counter: str(actions)
+        })

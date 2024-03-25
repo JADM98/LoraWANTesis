@@ -13,6 +13,9 @@ def getDeviceDataFile():
 def getModelFile():
     return send_file("../model.pth", as_attachment=True)
 
+def getMatrixFile():
+    return send_file("../action-matrix.txt", as_attachment=True)
+
 def handleTest():
     global myJson
     if request.is_json:
@@ -73,3 +76,4 @@ models.Routes.addRoute(app=app, url="/", function=returnHello)
 models.Routes.addRoute(app=app, url="/files/model", function=getModelFile)
 models.Routes.addRoute(app=app, url="/files/loss", function=getLossFile)
 models.Routes.addRoute(app=app, url="/files/device-data", function=getDeviceDataFile)
+models.Routes.addRoute(app=app, url="/files/action-matrix", function=getMatrixFile)
