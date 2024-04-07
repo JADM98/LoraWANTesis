@@ -1,19 +1,30 @@
+from threading import Thread
 from src.models.event import Event
 from src.models.devices.loraDevice import LoraDevice, LoraDev
 from src.models.queueManager.queueManager import LoraQueueManager
 from src.models.secrets import Secrets
 from src.models.networkUtils.networkManager import NetworkManager
-
-from threading import Thread
-import random
+from src.models.networkUtils.qNetworkConstants import QConstants
+from src.models.file_handlers.basic_file_handler import BasicFileHandler
 
 class EventProcessor():
+    __counter = 0
+    __fileHandler = BasicFileHandler("action-matrix.txt")
     devices:list[LoraDev] = []
     queueManager = LoraQueueManager(baseURL=Secrets.LORA_URL, 
         token=Secrets.TOKEN)
-    # neuralNetwork = NeuralNetwork()
-    neuralNetworkManager = NetworkManager()
-    # replayMemoryManager = ReplayMemoryManager()
+    neuralNetworkManager = NetworkManager(
+        targetEnergy=QConstants.TARGET_ENERGY, replayMemoryBatchSize=QConstants.BATCH_SIZE,
+        replayMemoryCapacity=QConstants.REPLAY_MEMORY_CAPACITY)
+
+    @staticmethod
+    def evaluateState(battery:float, sleepTime:float) -> float:
+        action = EventProcessor.neuralNetworkManager.evaluateWithNoTrain(battery, sleepTime)
+        return action
+    
+    @staticmethod
+    def getAction(battery:int, sleepTime:float) -> int:
+        return EventProcessor.neuralNetworkManager.getActionWithNoTrain(battery, sleepTime)
 
     @staticmethod
     def process(event: Event):
@@ -23,7 +34,7 @@ class EventProcessor():
             device = LoraDevice(event)
             sleepTime = device.sleepTime
 
-            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, sleepTime])
+            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
             queueThread.start()
 
             EventProcessor.devices.append(device)
@@ -31,15 +42,37 @@ class EventProcessor():
             didUpdate = device.updateDevice(event)
 
             if not didUpdate:
-                return 0
-            # if device.didRestart:
-            #     device.setNewSleepTime(10)
+                return device.sleepTime
+            if not device.isOk:
+                device.setNewSleepTime(5)
+                EventProcessor.neuralNetworkManager.replayMemoryManager.addFailure(device)
 
             sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device=device)
             device.setNewSleepTime(sleepTime)
-
-            #Post to LoRaWAN Gateway
-            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, sleepTime])
+            
+            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
             queueThread.start()
 
+            EventProcessor.__counter += 1
+            if EventProcessor.__counter % 500 == 0:
+                matrixTrhead = Thread(target=EventProcessor.__saveActionMatrix)
+                matrixTrhead.start()
         return sleepTime
+    
+    @staticmethod
+    def __saveActionMatrix():
+        counter = str(EventProcessor.__counter)
+
+        batteries = [float(i / QConstants.MAXIMUM_BAT) for i in range(101)]
+        sleepTimes = [float(i * QConstants.STEP / QConstants.MAXIMUM_TS) for i in range(int(30 / QConstants.STEP) + 1)]
+        actions = []
+        for i in range(len(batteries)):
+            tempArray = []
+            for j in range(len(sleepTimes)):
+                action = EventProcessor.getAction(batteries[i], sleepTimes[j])
+                tempArray.append(action)
+            actions.append(tempArray)
+
+        EventProcessor.__fileHandler.writeDict({
+            counter: str(actions)
+        })

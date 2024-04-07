@@ -11,14 +11,14 @@ myDict = {"adr":True,"applicationID":"3","applicationName":"laboratory-testing",
 
 myEv = models.Event.from_dict(myDict)
 
-# dev = models.LoraDevice(myEv)
-dev = models.LoraDeviceKalmanFiltered(myEv)
-dev.setNoiseScalar(0.001)
-dev.setStdDevBattery(2.1)
+dev = models.LoraDevice(myEv)
+# dev = models.LoraDeviceKalmanFiltered(myEv)
+# dev.setNoiseScalar(0.001)
+# dev.setStdDevBattery(2.1)
 
 # replayManager.add()
-for i in range(200):
-    replayManager.add(dev, random.randint(0, 4), random.random())
+for i in range(11):
+    replayManager.add(dev, random.randint(0, 4), random.random(), random.randint(0, 20) + 80, random.randint(0, 240)*0.25)
 
 print(replayManager.sample())
 # print(replayManager.)

@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,9 +6,13 @@ from torch.optim import AdamW
 import copy
 import numpy as np
 import random
+from src.models.file_handlers.basic_file_handler import BasicFileHandler
+
+from src.models.networkUtils.qNetworkConstants import QConstants
 
 class QNetwork():
     def __init__(self) -> None:
+        self.__fileHandler = BasicFileHandler("loss-data.txt")
         self.neuralNetwork = nn.Sequential(
             nn.Linear(2, 128),
             nn.ReLU(),
@@ -15,31 +20,52 @@ class QNetwork():
             nn.ReLU(),
             nn.Linear(64, 32),
             nn.ReLU(),
-            nn.Linear(32, 5),
+            nn.Linear(32, QConstants.NUMBER_OF_ACTIONS),
         )
-        self.gamma = 0.95
-        self.lr = 0.0005
+        if os.path.isfile("model.pth"):
+            self.neuralNetwork.load_state_dict(torch.load("model.pth"))
+        self.gamma = QConstants.GAMMA
+        self.lr = QConstants.INITIAL_LEARNING_RATE
         self.optim = AdamW(self.neuralNetwork.parameters(), lr=self.lr)
+        self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            self.optim, QConstants.STEPS_TO_DECAY_LEARNING_RATE, QConstants.FINAL_LEARNING_RATE)
         self.targetNN = copy.deepcopy(self.neuralNetwork).eval()
         self.counter = 0
         self.epsilon = 0.0
-        self.lossArray: np.array = np.array([])
+        lossReads = self.__fileHandler.read()
+        if lossReads is None:
+            self.lossArray: np.array = np.array([])
+        else:
+            # self.lossArray: np.array = np.array()
+            lossValues = [float(read["loss"]) for read in lossReads]
+            self.lossArray: np.array = np.array(lossValues)
+
+        self.epochWithoutTrainig = 0
+
+    def evaluateWithNoStep(self, energy:float, sleepTime:float) -> int:
+        with torch.no_grad():
+            actionTaken:torch.Tensor = self.neuralNetwork(torch.tensor([energy, sleepTime]))
+            actionTaken = torch.argmax(actionTaken, keepdim=True)
+            action = actionTaken.item()
+        return action
 
     def evaluate(self, energy:float, sleepTime:float) -> int:
-        if self.counter <= 1000:
-            self.epsilon = float(0.65 - ( np.power(0.995404, self.counter) ) * 0.65 )
-        elif self.counter <= 1500 and self.counter > 1000:
-            self.epsilon = 0.65
+        x = self.counter
+        if x <= 250:
+            self.epsilon = float(np.exp(x/360.6738) - 1) * 0.50
+        elif x <= 1000 and x > 250:
+            self.epsilon = 0.50
+        elif x < 4000:
+            self.epsilon = 0.75
         else:
-            self.epsilon = 0.9
+            self.epsilon = 0.90
 
         if (random.random() < self.epsilon):
-            # print("Actual energy: {}, Actual sleep time: {}".format(energy, sleepTime))
             actionTaken:torch.Tensor = self.neuralNetwork(torch.tensor([energy, sleepTime]))
             actionTaken = torch.argmax( actionTaken, keepdim=True )
             action = actionTaken.item()
         else:
-            action = random.randint(0, 4)
+            action = random.randint(0, QConstants.NUMBER_OF_ACTIONS - 1)
 
         self.counter += 1
 
@@ -69,11 +95,22 @@ class QNetwork():
         self.neuralNetwork.zero_grad()      #Zeroing gradients
         loss.backward()     
         self.optim.step()
+        lossValue = loss.item()
+        self.__fileHandler.writeDict({
+            "loss":str(lossValue)
+        })
+
+        if self.counter < QConstants.STEPS_TO_DECAY_LEARNING_RATE + self.epochWithoutTrainig - 1:
+            self.learningRateScheduler.step()
 
         #Save loss value
         with torch.no_grad():
-            self.lossArray = np.concatenate([self.lossArray, [loss.item()]])
+            self.lossArray = np.concatenate([self.lossArray, [lossValue]])
 
         #Each 10 iterations update target Neural Network parameters (thetas).
         if self.counter % 10 == 0:
             self.targetNN.load_state_dict(self.neuralNetwork.state_dict())
+            torch.save(self.neuralNetwork.state_dict(), "model.pth")
+
+    def exploringIterations(self, epochWithoutTrainig:float) -> None:
+        self.epochWithoutTrainig = epochWithoutTrainig

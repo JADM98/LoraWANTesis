@@ -9,13 +9,15 @@ class LoraQueueManager():
             self.__baseURL = "http://" + self.__baseURL
         if(self.__baseURL.find("https://") == 0):
             self.__baseURL = "http://" + self.__baseURL[8:]
+        if(self.__baseURL.endswith('/')):
+            self.__baseURL = self.__baseURL[:-1]
         self.__headers = {
             "Content-Type" : "application/json",
             "Authorization" : "Bearer " + token
         }
 
 
-    def enqueueSleepTime(self, loraDevice: models.LoraDev, sleepTime: int):
+    def enqueueSleepTime(self, loraDevice: models.LoraDev, sleepTime: int) -> requests.Response:
         url = self.__baseURL + "/api/devices/" + loraDevice.deviceEUI + "/queue"
         data = b64encode(sleepTime.to_bytes(1, "big"))
         bodyDownlinkQueue = {
@@ -25,4 +27,5 @@ class LoraQueueManager():
                 "fPort": 1
             }
         }
-        requests.post(url, json=bodyDownlinkQueue, headers=self.__headers)
+        print(url)
+        return requests.post(url, json=bodyDownlinkQueue, headers=self.__headers)

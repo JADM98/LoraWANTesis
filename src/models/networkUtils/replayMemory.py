@@ -2,6 +2,7 @@ import torch
 import random
 # import classes.transition as transition
 from src.models.networkUtils.transition import Transition
+from src.models.networkUtils.qNetworkConstants import QConstants
 
 class ReplayMemory():
     def __init__(self, capacity:int=3000, batchSize:int=32) -> None:
@@ -9,6 +10,17 @@ class ReplayMemory():
         self.batch_size = batchSize
         self.memory:list[Transition] = []
         self.position = 0
+
+    @staticmethod
+    def fromDictList(data: list[dict[str, str]], capacity:int=3000, batchSize:int=32) -> 'ReplayMemory':
+        replayMemory = ReplayMemory(capacity, batchSize)
+        # replayMemory.memory = data
+        replayMemory.memory = []
+        for transitionData in data:
+            transitionTemp = Transition.fromDict(transitionData)
+            replayMemory.insert(transitionTemp)
+
+        return replayMemory
 
     def insert(self, transition:Transition) -> None:
         if len(self.memory) < self.capacity:
@@ -41,7 +53,7 @@ class ReplayMemory():
         return myList
 
     def can_sample(self):
-        return len(self.memory) >= self.batch_size * 10
+        return len(self.memory) >= self.batch_size * QConstants.MINIMUM_TIMES_BS_TO_TRAIN
 
     def __len__(self):
         return len(self.memory)

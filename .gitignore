@@ -1,3 +1,9 @@
+# Generated files
+action-matrix.txt
+device-data.txt
+loss-data.txt
+model.pth
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 src/__pycache__
