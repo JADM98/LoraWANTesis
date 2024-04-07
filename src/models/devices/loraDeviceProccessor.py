@@ -30,33 +30,33 @@ class EventProcessor():
     def process(event: Event):
         #Check if it exist in current list
         device = next((device for device in EventProcessor.devices if device.checkEUIMatch(event)), None)
+
         if device is None:
             device = LoraDevice(event)
             sleepTime = device.sleepTime
-
-            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
-            queueThread.start()
-
+            
             EventProcessor.devices.append(device)
         else:
             didUpdate = device.updateDevice(event)
 
             if not didUpdate:
                 return device.sleepTime
-            if not device.isOk:
-                device.setNewSleepTime(5)
-                EventProcessor.neuralNetworkManager.replayMemoryManager.addFailure(device)
+        
+        if not device.isOk:
+            sleepTime = EventProcessor.neuralNetworkManager.processFailure(device)
+        else:
+            sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device)
 
-            sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device=device)
-            device.setNewSleepTime(sleepTime)
             
-            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
-            queueThread.start()
+        device.setNewSleepTime(sleepTime)
+        queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
+        queueThread.start()
 
-            EventProcessor.__counter += 1
-            if EventProcessor.__counter % 500 == 0:
-                matrixTrhead = Thread(target=EventProcessor.__saveActionMatrix)
-                matrixTrhead.start()
+        EventProcessor.__counter += 1
+        if EventProcessor.__counter % 500 == 0:
+            matrixTrhead = Thread(target=EventProcessor.__saveActionMatrix)
+            matrixTrhead.start()
+        
         return sleepTime
     
     @staticmethod

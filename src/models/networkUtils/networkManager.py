@@ -45,16 +45,13 @@ class NetworkManager():
 
         reward = RewardCalculator.calculate(
             energy=device.battery, targetEnergy=self.targetEnergy, sleepTimeChange=self.actions[action], currentSleepTime=device.sleepTime)
-
-        if device.didRestart:
-            self.replayMemoryManager.addFailure(device=device)
         
         self.replayMemoryManager.add(device=device, actionTaken=action, reward=reward, energy=energy, sleepTime=timeSleep)
 
         if self.replayMemoryManager.canSample():
             self.qNetwork.train(self.replayMemoryManager.sample())
 
-        print("Counter: " + str(self.qNetwork.counter) + " Battery: "+str(device.battery)+" SleepTime: "+str(newSleepTime) +" Reward: "+str(round(reward, 4)) + "Action taken: "+str(self.actions[action]))
+        # print("Counter: " + str(self.qNetwork.counter) + " Battery: "+str(device.battery)+" SleepTime: "+str(newSleepTime) +" Reward: "+str(round(reward, 4)) + "Action taken: "+str(self.actions[action]))
 
         return newSleepTime
 
@@ -64,5 +61,32 @@ class NetworkManager():
 
         self.replayMemoryManager.addEndOfDay(device, energy, timeSleep)
 
-    def addFailure(self, device:LoraDev) -> None:
-        self.replayMemoryManager.addFailure(device)
+    def processFailure(self, device:LoraDev) -> float:
+        #Since we are now adding a failure, we have to decide what to do from the point at this moment.
+        #The device has sent new battery, so based on that we will put the sleepTime as 10 minutes.
+
+        #We have to set a defaultSleepTime
+        defaultSleepTime = 10.0
+
+        #Normalization of data
+        energy = (device.battery - QConstants.MINIMUM_BAT) / self.differenceBat
+        timeSleep = (defaultSleepTime - QConstants.MINIMUM_TS) / self.differenceTS
+        stateSleepTime = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
+
+        #Then we will ask the model what to do now.
+        action = self.qNetwork.evaluate(energy=energy, sleepTime=timeSleep)
+        newSleepTime = self.actions[action] + defaultSleepTime
+        if newSleepTime < self.minimumTS:
+            newSleepTime = self.minimumTS
+        if newSleepTime > self.maximumTS:
+            newSleepTime = self.maximumTS
+
+        reward = RewardCalculator.calculate(
+            energy=device.battery, targetEnergy=self.targetEnergy, sleepTimeChange=self.actions[action], currentSleepTime=defaultSleepTime)
+
+        self.replayMemoryManager.addFailure(device=device, actionTaken=action, reward=reward, energy=energy, sleepTime=stateSleepTime)
+
+        if self.replayMemoryManager.canSample():
+            self.qNetwork.train(self.replayMemoryManager.sample())
+
+        return newSleepTime
