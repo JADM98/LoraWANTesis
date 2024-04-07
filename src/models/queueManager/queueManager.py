@@ -27,5 +27,4 @@ class LoraQueueManager():
                 "fPort": 1
             }
         }
-        print(url)
         return requests.post(url, json=bodyDownlinkQueue, headers=self.__headers)

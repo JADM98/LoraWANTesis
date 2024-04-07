@@ -26,30 +26,24 @@ class ReplayMemoryManager():
 
         if existingTransition is not None:
             self.__inserTransition(existingTransition, energy, sleepTime)
-            # self.currentTrainsitionList.remove(existingTransition)
-            # existingTransition.addNextState([energy, sleepTime])
-            # self.replayMemory.insert(existingTransition)
 
     def addEndOfDay(self, device:LoraDev, energy:float, sleepTime:float) -> None:
         existingTransition = next((tran for tran in self.currentTransitionList if tran.id == device.deviceEUI), None)
 
         if existingTransition is not None:
             self.__inserTransition(existingTransition, energy, sleepTime)
-            # self.currentTrainsitionList.remove(existingTransition)
-            # existingTransition.addNextState([energy, sleepTime])
-            # self.replayMemory.insert(existingTransition)
 
-    def addFailure(self, device:LoraDev) -> None:
+    def addFailure(self, device:LoraDev, actionTaken:int, reward:float, energy:float, sleepTime:float) -> None:
         existingTransition = next((tran for tran in self.currentTransitionList if tran.id == device.deviceEUI), None)
 
-        sleepTime = (device.oldSleepTime - QConstants.MAXIMUM_TS) - (QConstants.MAXIMUM_TS - QConstants.MINIMUM_TS)
+        tranition = Transition(device.deviceEUI, [energy, sleepTime], actionTaken, reward, device.time)
+        self.currentTransitionList.append(tranition)
 
         if existingTransition is not None:
+            #I think this is going to work since we set the sleep time last time the device transmitted.
+            #Then we are up to date on it. Now we only have to create a new Transition with the newest info.
             self.__inserTransition(existingTransition, float(0), sleepTime)
-            # self.currentTrainsitionList.remove(existingTransition)
-            # existingTransition.addNextState([float(0), sleepTime])
-            # self.replayMemory.insert(existingTransition)
-        
+
     def sample(self) -> list[Tensor]:
         if self.replayMemory.can_sample():
             return self.replayMemory.sampleTensor()
