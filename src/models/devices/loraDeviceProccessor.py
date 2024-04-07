@@ -50,8 +50,6 @@ class EventProcessor():
             sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device=device)
             device.setNewSleepTime(sleepTime)
             
-
-            #Post to LoRaWAN Gateway
             queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
             queueThread.start()
 
