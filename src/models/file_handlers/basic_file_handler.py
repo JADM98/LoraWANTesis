@@ -38,7 +38,7 @@ class BasicFileHandler():
 
         return data
 
-    def read(self) -> Union[List[Dict[str, str]] | None]:
+    def read(self) -> Union[List[Dict[str, str]], None]:
         lines = []
 
         # FileLocks.acquire(self.__fileName)
