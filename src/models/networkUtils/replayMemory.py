@@ -14,7 +14,7 @@ class ReplayMemory():
         self.position = 0
 
     @staticmethod
-    def fromDictList(data: List[dict[str, str]], capacity:int=3000, batchSize:int=32) -> 'ReplayMemory':
+    def fromDictList(data: List[Dict[str, str]], capacity:int=3000, batchSize:int=32) -> 'ReplayMemory':
         replayMemory = ReplayMemory(capacity, batchSize)
         # replayMemory.memory = data
         replayMemory.memory = []
