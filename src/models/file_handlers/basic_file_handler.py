@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import os
 import threading
@@ -22,7 +22,7 @@ class BasicFileHandler():
             
             file.write(stringTemp)
 
-    def readLastLine(self) -> Dict[str, str] | None:
+    def readLastLine(self) -> Union[Dict[str, str], None]:
         line = None
         data = None
 
@@ -38,7 +38,7 @@ class BasicFileHandler():
 
         return data
 
-    def read(self) -> List[Dict[str, str]] | None:
+    def read(self) -> Union[List[Dict[str, str]] | None]:
         lines = []
 
         # FileLocks.acquire(self.__fileName)
