@@ -22,7 +22,7 @@ class RouteMethods:
 class Routes:
 
     @staticmethod
-    def addRoute(app:Flask, url:str, function:Callable, methods:list[str] = RouteMethods.GET ):
+    def addRoute(app:Flask, url:str, function:Callable, methods:List[str] = RouteMethods.GET ):
         if LambdaUtils.isLambda(function):
             function = LambdaUtils.createNamedLambda(function)
         app.add_url_rule(rule=url, endpoint=function.__name__, methods=methods, view_func=function)
