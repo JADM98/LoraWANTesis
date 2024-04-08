@@ -5,7 +5,7 @@ import ast
 class Transition():
     #data is an array of 2 elements.
     #First element is energy and second is sleepTime
-    def __init__(self, id:str, data:list[float], action:int, reward:float, time:str) -> None:
+    def __init__(self, id:str, data:List[float], action:int, reward:float, time:str) -> None:
         self.id = id
         self.state = data
         self.action = action
