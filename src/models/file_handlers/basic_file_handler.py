@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 import os
 import threading
 
@@ -9,7 +11,7 @@ class BasicFileHandler():
             file = open(self.__fileName, 'x')
             file.close()
 
-    def writeDict(self, data: dict[str, str]) -> None:
+    def writeDict(self, data: Dict[str, str]) -> None:
 
         with open(self.__fileName, 'a') as file:
             stringTemp = ""
@@ -20,7 +22,7 @@ class BasicFileHandler():
             
             file.write(stringTemp)
 
-    def readLastLine(self) -> dict[str, str] | None:
+    def readLastLine(self) -> Dict[str, str] | None:
         line = None
         data = None
 
@@ -36,7 +38,7 @@ class BasicFileHandler():
 
         return data
 
-    def read(self) -> list[dict[str, str]] | None:
+    def read(self) -> List[Dict[str, str]] | None:
         lines = []
 
         # FileLocks.acquire(self.__fileName)
@@ -57,7 +59,7 @@ class BasicFileHandler():
         return data if len(data) > 0 else None
 
             
-    def __parseLineIntoData(self, line: str) -> dict:
+    def __parseLineIntoData(self, line: str) -> Dict:
         lines = line.split("|")
         data = {}
         for valuesString in lines:

@@ -1,3 +1,5 @@
+from typing import List
+
 from src.models.networkUtils.replayMemory import ReplayMemory
 from src.models.networkUtils.qNetworkConstants import QConstants
 from src.models.networkUtils.transition import Transition
@@ -12,7 +14,7 @@ class ReplayMemoryManager():
     def __init__(self, capacity = 3000, batchSize=16) -> None:
         self.__fileHandler = BasicFileHandler("device-data.txt")
         data = self.__fileHandler.read()
-        self.currentTransitionList:list[Transition] = []
+        self.currentTransitionList:List[Transition] = []
         if data is None:
             self.replayMemory = ReplayMemory(capacity=capacity, batchSize=batchSize)
         else:
@@ -44,17 +46,17 @@ class ReplayMemoryManager():
             #Then we are up to date on it. Now we only have to create a new Transition with the newest info.
             self.__inserTransition(existingTransition, float(0), sleepTime)
 
-    def sample(self) -> list[Tensor]:
+    def sample(self) -> List[Tensor]:
         if self.replayMemory.can_sample():
             return self.replayMemory.sampleTensor()
         return None
     
-    def sampleList(self) -> list[list[list]]:
+    def sampleList(self) -> List[List[List]]:
         if self.replayMemory.can_sample():
             return self.replayMemory.sampleList()
         return None
 
-    def getMemory(self) -> list[list[list]]:
+    def getMemory(self) -> List[List[List]]:
         return self.replayMemory.getMemoryList()
 
     def canSample(self) -> bool:

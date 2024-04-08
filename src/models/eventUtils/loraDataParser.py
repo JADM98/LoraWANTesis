@@ -1,3 +1,5 @@
+from typing import List
+
 from base64 import b64decode
 from src.models.decode import DecoderFactory
 import numpy as np
@@ -6,7 +8,7 @@ class LoraDataParser():
 
     def __init__(self, data:str) -> None:
         decoder = DecoderFactory.create(DecoderFactory.BASE64_2_INTHEXARRAY)
-        intHexArray:list[int] = decoder.decode(data=data)
+        intHexArray:List[int] = decoder.decode(data=data)
 
         self.command = intHexArray[0]
         self.battery = intHexArray[1]

@@ -1,3 +1,5 @@
+from typing import List
+
 from threading import Thread
 from src.models.event import Event
 from src.models.devices.loraDevice import LoraDevice, LoraDev
@@ -10,7 +12,7 @@ from src.models.file_handlers.basic_file_handler import BasicFileHandler
 class EventProcessor():
     __counter = 0
     __fileHandler = BasicFileHandler("action-matrix.txt")
-    devices:list[LoraDev] = []
+    devices:List[LoraDev] = []
     queueManager = LoraQueueManager(baseURL=Secrets.LORA_URL, 
         token=Secrets.TOKEN)
     neuralNetworkManager = NetworkManager(

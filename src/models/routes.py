@@ -1,5 +1,5 @@
 from flask import Flask
-from typing import Callable
+from typing import Callable, List
 from src.utility.functions import LambdaUtils
 
 class RouteMethods:
@@ -10,7 +10,7 @@ class RouteMethods:
     DELETE = ["DELETE"]
 
     @staticmethod
-    def withMethods(get:bool=False, post:bool=False, put:bool=False, delete:bool=False) -> list[str]:
+    def withMethods(get:bool=False, post:bool=False, put:bool=False, delete:bool=False) -> List[str]:
         methods = []
         if get: methods.append("GET")
         if post: methods.append("POST")

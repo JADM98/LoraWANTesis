@@ -1,3 +1,5 @@
+from typing import List
+
 from base64 import b64decode
 from abc import ABC, abstractmethod
 from base64 import b64decode
@@ -40,7 +42,7 @@ class Base64DecoderInt(Decoder):
         return int.from_bytes(dataBytes, "big")
 
 class Base64DecoderIntHexArray(Decoder):
-    def decode(self, data: str) -> list[int]:
+    def decode(self, data: str) -> List[int]:
         hexString = b64decode(data).hex()
         hexArray = bytes.fromhex(hexString)
         return [hexValue for hexValue in hexArray]

@@ -1,3 +1,5 @@
+from typing import List
+
 from src.models.event import Event
 from src.models.decode import *
 from src.models.kalmanFilter.simplifiedKalmanFilter import SimplifiedKalmanFilter
@@ -10,7 +12,7 @@ class LoraDev(ABC):
     def deviceEUI(self) -> str:
         pass
     @abstractproperty
-    def data(self) -> list[int]:
+    def data(self) -> List[int]:
         pass
     @abstractproperty
     def battery(self) -> float:
@@ -58,7 +60,7 @@ class LoraDevice(LoraDev):
     def deviceEUI(self) -> str:
         return self.__devEui
     @property
-    def data(self) -> list[int]:
+    def data(self) -> List[int]:
         return self.__data
     @property
     def battery(self) -> float:
@@ -147,7 +149,7 @@ class LoraDeviceKalmanFiltered(LoraDev):
     def deviceEUI(self) -> str:
         return self.__devEui
     @property
-    def data(self) -> list[int]:
+    def data(self) -> List[int]:
         return self.__data
     @property
     def battery(self) -> float:

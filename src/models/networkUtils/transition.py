@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 import ast
 
 class Transition():
@@ -12,7 +14,7 @@ class Transition():
         self.nextState:list = []
     
     @staticmethod
-    def fromDict(data: dict) -> 'Transition':
+    def fromDict(data: Dict) -> 'Transition':
 
         state = ast.literal_eval(data["state"])
         action = int(data["action"])
@@ -24,16 +26,16 @@ class Transition():
         transitionTemp.addNextState(nextState)
         return transitionTemp
 
-    def addNextState(self, data:list[float]):
+    def addNextState(self, data:List[float]):
         self.nextState = data
 
-    def toList(self, showId=True) -> list[list]:
+    def toList(self, showId=True) -> List[List]:
         myList = [self.state, [self.action], [self.reward], self.nextState]
         if showId:
             myList.insert(0, [self.id])
         return myList
     
-    def toDict(self) -> dict[str, any]:
+    def toDict(self) -> Dict[str, any]:
         data = {
             "id": self.id,
             "state": self.state,
@@ -45,7 +47,7 @@ class Transition():
 
         return data
     
-    def toStringDict(self) -> dict[str, str]:
+    def toStringDict(self) -> Dict[str, str]:
         data = {
             "id": self.id,
             "state": str(self.state),
