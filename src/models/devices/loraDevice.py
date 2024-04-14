@@ -128,6 +128,9 @@ class LoraDevice(LoraDev):
             self.__data = loraData.data
             self.__fCount = jsonEvent.fCnt
             self.__battery = loraData.battery
+            self.__time = jsonEvent.publishedAt
+            self.__fPort = jsonEvent.fPort
+            self.__fCount = jsonEvent.fCnt
 
             return True
             # if not loraData.isOk:
@@ -141,6 +144,7 @@ class LoraDevice(LoraDev):
         if sleepTime < QConstants.MINIMUM_TS:
             sleepTime = QConstants.MINIMUM_TS
         
+        self.__oldSleepTime = self.__sleepTime
         self.__sleepTime = sleepTime
         return True
 
@@ -213,6 +217,9 @@ class LoraDeviceKalmanFiltered(LoraDev):
             self.__didRestart = loraData.didRestart
             self.__lostPower = loraData.lostPower
             self.__isOk = loraData.isOk
+            self.__time = jsonEvent.publishedAt
+            self.__fCount = jsonEvent.fCnt
+            self.__fPort = jsonEvent.fPort
             if loraData.didRestart:
                 self.__sleepTime = QConstants.INITIAL_SLEEP_TIME
                 self.__kalman.setNewMeasureTime(self.__sleepTime)
@@ -241,5 +248,6 @@ class LoraDeviceKalmanFiltered(LoraDev):
         if sleepTime < QConstants.MINIMUM_TS:
             sleepTime = QConstants.MINIMUM_TS
         
+        self.__oldSleepTime = self.__sleepTime
         self.__sleepTime = sleepTime
         return True
