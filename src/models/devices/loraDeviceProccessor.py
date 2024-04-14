@@ -44,15 +44,20 @@ class EventProcessor():
             if not didUpdate:
                 return device.sleepTime
         
-        if not device.isOk:
-            sleepTime = EventProcessor.neuralNetworkManager.processFailure(device)
+        if device.isOk:
+            state = EventProcessor.neuralNetworkManager.getNewSleepTime(device)
+            device.setNewSleepTime(sleepTime)
+            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, 
+                                 args=[device, int( round( state.sleepTime/QConstants.STEP ) )])
+            queueThread.start()
+            EventProcessor.neuralNetworkManager.processState(device, state)
         else:
-            sleepTime = EventProcessor.neuralNetworkManager.processNewSleepTime(device)
-
-            
-        device.setNewSleepTime(sleepTime)
-        queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, args=[device, int(round(sleepTime/QConstants.STEP))])
-        queueThread.start()
+            state = EventProcessor.neuralNetworkManager.getNewSleepTimeFromFailure(device)
+            device.setNewSleepTime(sleepTime)
+            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, 
+                                 args=[device, int( round( state.sleepTime/QConstants.STEP ) )])
+            queueThread.start()
+            EventProcessor.neuralNetworkManager.processFailure(device, state)
 
         EventProcessor.__counter += 1
         if EventProcessor.__counter % 500 == 0:

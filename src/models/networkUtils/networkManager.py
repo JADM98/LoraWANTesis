@@ -3,6 +3,7 @@ from src.models.devices.loraDevice import LoraDev
 from src.models.networkUtils.replayMemoryManager import ReplayMemoryManager
 from src.models.networkUtils.rewardCalculator import RewardCalculator
 from src.models.networkUtils.qNetworkConstants import QConstants
+from src.models.networkUtils.actionState import ActionState
 
 class NetworkManager():
     @property
@@ -30,7 +31,38 @@ class NetworkManager():
     def getActionWithNoTrain(self, battery:float, sleepTime:float) -> int:
         return self.qNetwork.evaluateWithNoStep(energy=battery, sleepTime=sleepTime)
 
-    def processNewSleepTime(self, device:LoraDev) -> float:
+    # def processNewSleepTime(self, device:LoraDev) -> float:
+    #     #Normalization of data
+    #     energy = (device.battery - QConstants.MINIMUM_BAT) / self.differenceBat
+    #     timeSleep = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
+
+    #     action = self.qNetwork.evaluate(energy=energy, sleepTime=timeSleep)
+    #     newSleepTime = self.actions[action] + device.sleepTime
+
+    #     if newSleepTime < self.minimumTS:
+    #         newSleepTime = self.minimumTS
+    #     if newSleepTime > self.maximumTS:
+    #         newSleepTime = self.maximumTS
+
+    #     reward = RewardCalculator.calculate(
+    #         energy=device.battery, targetEnergy=self.targetEnergy, sleepTimeChange=self.actions[action], currentSleepTime=device.sleepTime)
+        
+    #     self.replayMemoryManager.add(device=device, actionTaken=action, reward=reward, energy=energy, sleepTime=timeSleep)
+
+    #     if self.replayMemoryManager.canSample():
+    #         self.qNetwork.train(self.replayMemoryManager.sample())
+
+    #     # print("Counter: " + str(self.qNetwork.counter) + " Battery: "+str(device.battery)+" SleepTime: "+str(newSleepTime) +" Reward: "+str(round(reward, 4)) + "Action taken: "+str(self.actions[action]))
+
+    #     return newSleepTime
+
+    def endDaySession(self, device:LoraDev) -> None:
+        energy = (device.battery - QConstants.MINIMUM_BAT) / self.differenceBat
+        timeSleep = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
+
+        self.replayMemoryManager.addEndOfDay(device, energy, timeSleep)
+
+    def getNewSleepTime(self, device:LoraDev) -> ActionState:
         #Normalization of data
         energy = (device.battery - QConstants.MINIMUM_BAT) / self.differenceBat
         timeSleep = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
@@ -43,25 +75,10 @@ class NetworkManager():
         if newSleepTime > self.maximumTS:
             newSleepTime = self.maximumTS
 
-        reward = RewardCalculator.calculate(
-            energy=device.battery, targetEnergy=self.targetEnergy, sleepTimeChange=self.actions[action], currentSleepTime=device.sleepTime)
-        
-        self.replayMemoryManager.add(device=device, actionTaken=action, reward=reward, energy=energy, sleepTime=timeSleep)
-
-        if self.replayMemoryManager.canSample():
-            self.qNetwork.train(self.replayMemoryManager.sample())
-
-        # print("Counter: " + str(self.qNetwork.counter) + " Battery: "+str(device.battery)+" SleepTime: "+str(newSleepTime) +" Reward: "+str(round(reward, 4)) + "Action taken: "+str(self.actions[action]))
-
-        return newSleepTime
-
-    def endDaySession(self, device:LoraDev) -> None:
-        energy = (device.battery - QConstants.MINIMUM_BAT) / self.differenceBat
-        timeSleep = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
-
-        self.replayMemoryManager.addEndOfDay(device, energy, timeSleep)
-
-    def processFailure(self, device:LoraDev) -> float:
+        state = ActionState(newSleepTime, action)
+        return state
+    
+    def getNewSleepTimeFromFailure(self, device:LoraDev) -> ActionState:
         #Since we are now adding a failure, we have to decide what to do from the point at this moment.
         #The device has sent new battery, so based on that we will put the sleepTime as 10 minutes.
 
@@ -71,7 +88,7 @@ class NetworkManager():
         #Normalization of data
         energy = (device.battery - QConstants.MINIMUM_BAT) / self.differenceBat
         timeSleep = (defaultSleepTime - QConstants.MINIMUM_TS) / self.differenceTS
-        stateSleepTime = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
+        # stateSleepTime = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
 
         #Then we will ask the model what to do now.
         action = self.qNetwork.evaluate(energy=energy, sleepTime=timeSleep)
@@ -81,12 +98,31 @@ class NetworkManager():
         if newSleepTime > self.maximumTS:
             newSleepTime = self.maximumTS
 
-        reward = RewardCalculator.calculate(
-            energy=device.battery, targetEnergy=self.targetEnergy, sleepTimeChange=self.actions[action], currentSleepTime=defaultSleepTime)
+        return ActionState(newSleepTime, action)
+    
+    def processState(self, device:LoraDev, state: ActionState) -> None:
+        timeSleep = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
+        energy = (device.battery - QConstants.MINIMUM_BAT) / self.differenceBat
 
-        self.replayMemoryManager.addFailure(device=device, actionTaken=action, reward=reward, energy=energy, sleepTime=stateSleepTime)
+        reward = RewardCalculator.calculate(
+            energy=device.battery, targetEnergy=self.targetEnergy, sleepTimeChange=self.actions[state.action], currentSleepTime=device.sleepTime)
+        
+        self.replayMemoryManager.add(device=device, actionTaken=state.action, reward=reward, energy=energy, sleepTime=timeSleep)
 
         if self.replayMemoryManager.canSample():
             self.qNetwork.train(self.replayMemoryManager.sample())
 
-        return newSleepTime
+    def processFailure(self, device:LoraDev, state:ActionState) -> None:
+        defaultSleepTime = 10.0
+        
+        #Normalization of data
+        energy = (device.battery - QConstants.MINIMUM_BAT) / self.differenceBat
+        stateSleepTime = (device.sleepTime - QConstants.MINIMUM_TS) / self.differenceTS
+
+        reward = RewardCalculator.calculate(
+            energy=device.battery, targetEnergy=self.targetEnergy, sleepTimeChange=self.actions[state.action], currentSleepTime=defaultSleepTime)
+
+        self.replayMemoryManager.addFailure(device=device, actionTaken=state.action, reward=reward, energy=energy, sleepTime=stateSleepTime)
+
+        if self.replayMemoryManager.canSample():
+            self.qNetwork.train(self.replayMemoryManager.sample())
