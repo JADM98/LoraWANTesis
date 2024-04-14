@@ -4,6 +4,7 @@ import src.models as models
 
 class LoraQueueManager():
     def __init__(self, baseURL:str, token:str) -> None:
+        self.__session = requests.Session()
         self.__baseURL = baseURL.lower()
         if(self.__baseURL.find("http://") == -1):
             self.__baseURL = "http://" + self.__baseURL
@@ -27,4 +28,4 @@ class LoraQueueManager():
                 "fPort": 1
             }
         }
-        return requests.post(url, json=bodyDownlinkQueue, headers=self.__headers)
+        return self.__session.post(url, json=bodyDownlinkQueue, headers=self.__headers)
