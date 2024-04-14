@@ -56,6 +56,13 @@ class ReplayMemory():
 
     def can_sample(self):
         return len(self.memory) >= self.batch_size * QConstants.MINIMUM_TIMES_BS_TO_TRAIN
+    
+    def getLast(self) -> Dict:
+        if len(self):
+            return self.memory[self.position - 1].toDict()
+        else:
+            {"count": None}
+
 
     def __len__(self):
         return len(self.memory)

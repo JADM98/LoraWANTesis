@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from threading import Thread
 from src.models.event import Event
@@ -10,7 +10,6 @@ from src.models.networkUtils.qNetworkConstants import QConstants
 from src.models.file_handlers.basic_file_handler import BasicFileHandler
 
 class EventProcessor():
-    __counter = 0
     __fileHandler = BasicFileHandler("action-matrix.txt")
     devices:List[LoraDev] = []
     queueManager = LoraQueueManager(baseURL=Secrets.LORA_URL, 
@@ -18,6 +17,14 @@ class EventProcessor():
     neuralNetworkManager = NetworkManager(
         targetEnergy=QConstants.TARGET_ENERGY, replayMemoryBatchSize=QConstants.BATCH_SIZE,
         replayMemoryCapacity=QConstants.REPLAY_MEMORY_CAPACITY)
+
+    @staticmethod
+    def counter() -> int:
+        return EventProcessor.neuralNetworkManager.counter
+    
+    @staticmethod
+    def getLastEvent() -> Dict:
+        return EventProcessor.neuralNetworkManager.getLastTransition()
 
     @staticmethod
     def evaluateState(battery:float, sleepTime:float) -> float:
@@ -35,8 +42,6 @@ class EventProcessor():
 
         if device is None:
             device = LoraDevice(event)
-            sleepTime = device.sleepTime
-            
             EventProcessor.devices.append(device)
         else:
             didUpdate = device.updateDevice(event)
@@ -46,29 +51,30 @@ class EventProcessor():
         
         if device.isOk:
             state = EventProcessor.neuralNetworkManager.getNewSleepTime(device)
-            device.setNewSleepTime(sleepTime)
-            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, 
-                                 args=[device, int( round( state.sleepTime/QConstants.STEP ) )])
-            queueThread.start()
+            # device.setNewSleepTime(sleepTime)
+            # queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, 
+            #                      args=[device, int( round( state.sleepTime/QConstants.STEP ) )])
+            # queueThread.start()
             EventProcessor.neuralNetworkManager.processState(device, state)
         else:
             state = EventProcessor.neuralNetworkManager.getNewSleepTimeFromFailure(device)
-            device.setNewSleepTime(sleepTime)
-            queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, 
-                                 args=[device, int( round( state.sleepTime/QConstants.STEP ) )])
-            queueThread.start()
+            # device.setNewSleepTime(sleepTime)
+            # queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, 
+            #                      args=[device, int( round( state.sleepTime/QConstants.STEP ) )])
+            # queueThread.start()
             EventProcessor.neuralNetworkManager.processFailure(device, state)
 
-        EventProcessor.__counter += 1
-        if EventProcessor.__counter % 500 == 0:
+        device.setNewSleepTime(state.sleepTime)
+
+        if EventProcessor.neuralNetworkManager.counter % 500 == 0 and EventProcessor.neuralNetworkManager.counter != 0:
             matrixTrhead = Thread(target=EventProcessor.__saveActionMatrix)
             matrixTrhead.start()
         
-        return sleepTime
+        return state.sleepTime
     
     @staticmethod
     def __saveActionMatrix():
-        counter = str(EventProcessor.__counter)
+        counter = str(EventProcessor.neuralNetworkManager.counter)
 
         batteries = [float(i / QConstants.MAXIMUM_BAT) for i in range(101)]
         sleepTimes = [float(i * QConstants.STEP / QConstants.MAXIMUM_TS) for i in range(int(30 / QConstants.STEP) + 1)]

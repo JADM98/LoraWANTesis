@@ -131,6 +131,7 @@ class LoraDevice(LoraDev):
             self.__time = jsonEvent.publishedAt
             self.__fPort = jsonEvent.fPort
             self.__fCount = jsonEvent.fCnt
+            self.__oldSleepTime = self.__sleepTime
 
             return True
             # if not loraData.isOk:

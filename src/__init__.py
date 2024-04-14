@@ -64,6 +64,9 @@ def returnOk():
 
 def returnHello():
     return "This ain't the page you're looking for, but is good to see you here"
+
+def counter():
+    return jsonify({"count": models.EventProcessor.counter()})
         
 models.Routes.addRoute(app=app, url="/device", function=handleTest, methods=models.RouteMethods.POST)
 models.Routes.addRoute(app=app, url="/device", function=getTest)
@@ -77,3 +80,5 @@ models.Routes.addRoute(app=app, url="/files/model", function=getModelFile)
 models.Routes.addRoute(app=app, url="/files/loss", function=getLossFile)
 models.Routes.addRoute(app=app, url="/files/device-data", function=getDeviceDataFile)
 models.Routes.addRoute(app=app, url="/files/action-matrix", function=getMatrixFile)
+models.Routes.addRoute(app=app, url="/count", function=counter)
+models.Routes.addRoute(app=app, url="/memory/last", function=models.EventProcessor.getLastEvent)
