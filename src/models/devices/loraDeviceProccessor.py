@@ -51,14 +51,12 @@ class EventProcessor():
         
         if device.isOk:
             state = EventProcessor.neuralNetworkManager.getNewSleepTime(device)
-            device.setNewSleepTime(state.sleepTime)
             queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, 
                                  args=[device, int( round( state.sleepTime/QConstants.STEP ) )])
             queueThread.start()
             EventProcessor.neuralNetworkManager.processState(device, state)
         else:
             state = EventProcessor.neuralNetworkManager.getNewSleepTimeFromFailure(device)
-            device.setNewSleepTime(state.sleepTime)
             queueThread = Thread(target=EventProcessor.queueManager.enqueueSleepTime, 
                                  args=[device, int( round( state.sleepTime/QConstants.STEP ) )])
             queueThread.start()
