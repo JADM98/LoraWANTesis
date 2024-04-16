@@ -16,9 +16,9 @@ class NetworkManager():
         return self.qNetwork.lossArray
 
     def __init__(self, targetEnergy:float = 85.0, replayMemoryCapacity:int=3000, replayMemoryBatchSize:int=16) -> None:
-        self.qNetwork = QNetwork()
-        self.qNetwork.exploringIterations(replayMemoryBatchSize * QConstants.MINIMUM_TIMES_BS_TO_TRAIN)
         self.replayMemoryManager = ReplayMemoryManager(capacity=replayMemoryCapacity, batchSize=replayMemoryBatchSize)
+        self.qNetwork = QNetwork(self.replayMemoryManager.counter)
+        self.qNetwork.exploringIterations(replayMemoryBatchSize * QConstants.MINIMUM_TIMES_BS_TO_TRAIN)
         self.targetEnergy = targetEnergy
         self.actions:list[float] = QConstants.ACTIONS
         self.minimumTS = QConstants.MINIMUM_TS

@@ -25,7 +25,7 @@ class ReplayMemoryManager():
             self.replayMemory = ReplayMemory(capacity=capacity, batchSize=batchSize)
         else:
             self.__counter = len(data)
-            self.replayMemory = ReplayMemory.fromDictList(data)
+            self.replayMemory = ReplayMemory.fromDictList(data=data, batchSize=batchSize)
 
     def getLast(self) -> Dict:
         return self.replayMemory.getLast()

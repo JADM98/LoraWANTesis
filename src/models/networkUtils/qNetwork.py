@@ -11,7 +11,20 @@ from src.models.file_handlers.basic_file_handler import BasicFileHandler
 from src.models.networkUtils.qNetworkConstants import QConstants
 
 class QNetwork():
-    def __init__(self) -> None:
+
+    @property
+    def learningRate(self):
+        for paramGroup in self.optim.param_groups:
+            return paramGroup["lr"]
+    @property
+    def epoch(self):
+        return self.__counter
+    
+    @property
+    def epsilon(self):
+        return self.__epsilon
+
+    def __init__(self, counter: int) -> None:
         self.__fileHandler = BasicFileHandler("loss-data.txt")
         self.neuralNetwork = nn.Sequential(
             nn.Linear(2, 128),
@@ -22,16 +35,14 @@ class QNetwork():
             nn.ReLU(),
             nn.Linear(32, QConstants.NUMBER_OF_ACTIONS),
         )
-        if os.path.isfile("model.pth"):
-            self.neuralNetwork.load_state_dict(torch.load("model.pth"))
         self.gamma = QConstants.GAMMA
         self.lr = QConstants.INITIAL_LEARNING_RATE
-        self.optim = AdamW(self.neuralNetwork.parameters(), lr=self.lr)
-        self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.optim, QConstants.STEPS_TO_DECAY_LEARNING_RATE, QConstants.FINAL_LEARNING_RATE)
+        self.__counter = counter - QConstants.BATCH_SIZE * QConstants.MINIMUM_TIMES_BS_TO_TRAIN
+        if self.__counter < 0:
+            self.__counter = 0
+        
         self.targetNN = copy.deepcopy(self.neuralNetwork).eval()
-        self.counter = 0
-        self.epsilon = 0.0
+        self.__epsilon = 0.0
         lossReads = self.__fileHandler.read()
         if lossReads is None:
             self.lossArray: np.array = np.array([])
@@ -39,6 +50,20 @@ class QNetwork():
             # self.lossArray: np.array = np.array()
             lossValues = [float(read["loss"]) for read in lossReads]
             self.lossArray: np.array = np.array(lossValues)
+
+        self.optim = AdamW(self.neuralNetwork.parameters(), lr=self.lr)
+
+        if os.path.isfile("model.pth"):
+            self.neuralNetwork.load_state_dict(torch.load("model.pth"))
+        
+        if os.path.isfile("optimizer.pth"):
+            state_optimizer = torch.load("optimizer.pth")
+            self.optim.load_state_dict(state_optimizer["state_dict"])
+            self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                self.optim, QConstants.STEPS_TO_DECAY_LEARNING_RATE, QConstants.FINAL_LEARNING_RATE, counter)
+        else:
+            self.learningRateScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                self.optim, QConstants.STEPS_TO_DECAY_LEARNING_RATE, QConstants.FINAL_LEARNING_RATE)
 
         self.epochWithoutTrainig = 0
 
@@ -50,24 +75,24 @@ class QNetwork():
         return action
 
     def evaluate(self, energy:float, sleepTime:float) -> int:
-        x = self.counter
+        x = self.__counter
         if x <= 250:
-            self.epsilon = float(np.exp(x/360.6738) - 1) * 0.50
+            self.__epsilon = float(np.exp(x/360.6738) - 1) * 0.50
         elif x <= 1000 and x > 250:
-            self.epsilon = 0.50
+            self.__epsilon = 0.50
         elif x < 4000:
-            self.epsilon = 0.75
+            self.__epsilon = 0.75
         else:
-            self.epsilon = 0.90
+            self.__epsilon = 0.90
 
-        if (random.random() < self.epsilon):
+        if (random.random() < self.__epsilon):
             actionTaken:torch.Tensor = self.neuralNetwork(torch.tensor([energy, sleepTime]))
             actionTaken = torch.argmax( actionTaken, keepdim=True )
             action = actionTaken.item()
         else:
             action = random.randint(0, QConstants.NUMBER_OF_ACTIONS - 1)
 
-        self.counter += 1
+        self.__counter += 1
 
         return int(action)
 
@@ -100,7 +125,8 @@ class QNetwork():
             "loss":str(lossValue)
         })
 
-        if self.counter < QConstants.STEPS_TO_DECAY_LEARNING_RATE + self.epochWithoutTrainig - 1:
+        # if self.counter < QConstants.STEPS_TO_DECAY_LEARNING_RATE + self.epochWithoutTrainig - 1:
+        if self.__counter < QConstants.STEPS_TO_DECAY_LEARNING_RATE - 1:
             self.learningRateScheduler.step()
 
         #Save loss value
@@ -108,9 +134,15 @@ class QNetwork():
             self.lossArray = np.concatenate([self.lossArray, [lossValue]])
 
         #Each 10 iterations update target Neural Network parameters (thetas).
-        if self.counter % 10 == 0:
+        if self.__counter % 10 == 0:
             self.targetNN.load_state_dict(self.neuralNetwork.state_dict())
             torch.save(self.neuralNetwork.state_dict(), "model.pth")
+            optimizer_state = {
+                'state_dict': self.optim.state_dict(),
+                'param_groups': self.optim.param_groups,
+                'epoch': self.__counter  # Update with the current epoch 
+            }
+            torch.save(optimizer_state, 'optimizer.pth')
 
     def exploringIterations(self, epochWithoutTrainig:float) -> None:
         self.epochWithoutTrainig = epochWithoutTrainig

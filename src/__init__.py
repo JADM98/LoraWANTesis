@@ -67,6 +67,16 @@ def returnHello():
 
 def counter():
     return jsonify({"count": models.EventProcessor.counter()})
+
+def learningRate():
+    return jsonify({"lr":models.EventProcessor.neuralNetworkManager.qNetwork.learningRate})
+
+def qNetworkData():
+    return jsonify({
+        "lr": models.EventProcessor.neuralNetworkManager.qNetwork.learningRate,
+        "epoch": models.EventProcessor.neuralNetworkManager.qNetwork.epoch,
+        "epsilon": models.EventProcessor.neuralNetworkManager.qNetwork.epsilon
+    })
         
 models.Routes.addRoute(app=app, url="/device", function=handleTest, methods=models.RouteMethods.POST)
 models.Routes.addRoute(app=app, url="/device", function=getTest)
@@ -82,3 +92,5 @@ models.Routes.addRoute(app=app, url="/files/device-data", function=getDeviceData
 models.Routes.addRoute(app=app, url="/files/action-matrix", function=getMatrixFile)
 models.Routes.addRoute(app=app, url="/count", function=counter)
 models.Routes.addRoute(app=app, url="/memory/last", function=models.EventProcessor.getLastEvent)
+models.Routes.addRoute(app=app, url="/variables/learning-rate", function=learningRate)
+models.Routes.addRoute(app=app, url="/variables/q-network", function=qNetworkData)

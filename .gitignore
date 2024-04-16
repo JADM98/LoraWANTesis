@@ -3,6 +3,7 @@ action-matrix.txt
 device-data.txt
 loss-data.txt
 model.pth
+optimizer.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
